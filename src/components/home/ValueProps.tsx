@@ -19,8 +19,8 @@ const props = [
   },
   {
     icon: Award,
-    title: "Lifetime Warranty",
-    description: "Every repair backed by our lifetime warranty on workmanship.",
+    title: "3-Year Warranty",
+    description: "Every repair backed by our 3-year warranty on workmanship.",
   },
 ];
 

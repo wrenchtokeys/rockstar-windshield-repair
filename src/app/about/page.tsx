@@ -62,7 +62,7 @@ export default function AboutPage() {
           <p>
             We&apos;re fully insured, and we
             work directly with insurance companies so that most repairs cost
-            you nothing out of pocket. Every job is backed by our lifetime
+            you nothing out of pocket. Every job is backed by our 3-year
             warranty on workmanship — because we stand behind our work, period.
           </p>
         </div>

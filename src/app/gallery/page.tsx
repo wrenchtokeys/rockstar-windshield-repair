@@ -123,7 +123,7 @@ export default function GalleryPage() {
 
         <div className="mt-16 text-center">
           <p className="mb-6 text-zinc-400">
-            Every repair backed by our lifetime warranty on workmanship.
+            Every repair backed by our 3-year warranty on workmanship.
           </p>
           <Button href="/contact">Get Your Free Quote</Button>
         </div>

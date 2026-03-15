@@ -7,7 +7,7 @@ export default function JsonLd() {
     "@id": `https://${BUSINESS.domain}/#business`,
     name: BUSINESS.name,
     description:
-      "Professional mobile windshield chip and crack repair in Little Rock, AR and Central Arkansas. Same-day service, insurance approved, lifetime warranty. We come to you.",
+      "Professional mobile windshield chip and crack repair in Little Rock, AR and Central Arkansas. Same-day service, insurance approved, 3-year warranty. We come to you.",
     telephone: BUSINESS.phone,
     email: BUSINESS.email,
     url: `https://${BUSINESS.domain}`,

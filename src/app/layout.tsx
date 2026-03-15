@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     template: `%s | ${BUSINESS.name}`,
   },
   description:
-    "Professional mobile windshield chip and crack repair in Little Rock, AR. Same-day service, insurance approved, lifetime warranty. We come to you.",
+    "Professional mobile windshield chip and crack repair in Little Rock, AR. Same-day service, insurance approved, 3-year warranty. We come to you.",
   metadataBase: new URL(`https://${BUSINESS.domain}`),
   keywords: [
     "windshield repair Little Rock",
