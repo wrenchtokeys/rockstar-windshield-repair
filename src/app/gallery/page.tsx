@@ -13,40 +13,34 @@ export const metadata: Metadata = createMetadata(
 
 const galleryItems = [
   {
-    title: "Rock Chip Repair",
+    title: "Half-Moon Chip Repair",
     tag: "Chip Repair",
     before: "/images/gallery/before-1.jpeg",
     after: "/images/gallery/after-1.jpeg",
   },
   {
-    title: "Windshield Crack Fix",
-    tag: "Crack Repair",
+    title: "Star Break Repair",
+    tag: "Chip Repair",
     before: "/images/gallery/before-2.jpeg",
     after: "/images/gallery/after-2.jpeg",
   },
   {
-    title: "Star Break Repair",
+    title: "Bullseye Impact Fix",
     tag: "Chip Repair",
     before: "/images/gallery/before-3.jpeg",
     after: "/images/gallery/after-3.jpeg",
   },
   {
-    title: "Long Crack Repair",
+    title: "Crack & Chip Repair",
     tag: "Crack Repair",
     before: "/images/gallery/before-4.jpeg",
     after: "/images/gallery/after-4.jpeg",
   },
   {
-    title: "Bullseye Chip Fix",
+    title: "Stone Break Repair",
     tag: "Chip Repair",
     before: "/images/gallery/before-5.jpeg",
     after: "/images/gallery/after-5.jpeg",
-  },
-  {
-    title: "Multi-Point Damage",
-    tag: "Chip Repair",
-    before: "/images/gallery/before-6.jpeg",
-    after: "/images/gallery/after-6.jpeg",
   },
 ];
 
