@@ -1,36 +1,185 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Rockstar Windshield Repair
 
-## Getting Started
+Business website for **Rockstar Windshield Repair**, a mobile windshield repair service in Little Rock, AR and surrounding Central Arkansas areas.
 
-First, run the development server:
+**Live:** [rockstarwindshield.repair](https://rockstarwindshield.repair)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+---
+
+## Tech Stack
+
+- **Framework:** Next.js 15 (App Router, TypeScript)
+- **Styling:** Tailwind CSS v4 (dark theme, royal blue accent)
+- **Fonts:** Oswald (headings) + Inter (body) via `next/font/google`
+- **Icons:** lucide-react
+- **Email:** Resend SDK (contact form submissions)
+- **Hosting:** AWS Elastic Beanstalk (Node.js 22, Amazon Linux 2023)
+- **DNS:** AWS Route 53
+- **SSL:** AWS ACM
+
+## Pages
+
+| Route | Description |
+|---|---|
+| `/` | Home — hero, value props, services preview, testimonials, CTA banner |
+| `/services` | Service cards: chip/stone break repair, crack repair, mobile service, insurance claims, fleet & commercial, windshield assessment |
+| `/about` | Company story, mission, "Why Choose Us" section |
+| `/gallery` | Before/after photo grid (placeholder images) |
+| `/reviews` | Masonry grid of customer reviews with star ratings |
+| `/service-area` | Cities served with descriptions + Google Maps embed |
+| `/contact` | Contact form + business info + map (form submits via Resend) |
+
+## Project Structure
+
+```
+src/
+├── app/
+│   ├── layout.tsx              # Root layout (fonts, Header, Footer, JsonLd)
+│   ├── page.tsx                # Home
+│   ├── globals.css             # Tailwind theme
+│   ├── about/page.tsx
+│   ├── services/page.tsx
+│   ├── gallery/page.tsx
+│   ├── reviews/page.tsx
+│   ├── contact/
+│   │   ├── page.tsx
+│   │   └── actions.ts          # Server action → Resend email
+│   ├── service-area/page.tsx
+│   ├── not-found.tsx
+│   ├── sitemap.ts
+│   └── robots.ts
+├── components/
+│   ├── layout/
+│   │   ├── Header.tsx          # Sticky nav, logo, click-to-call
+│   │   ├── Footer.tsx          # 3-column footer
+│   │   └── MobileMenu.tsx      # Slide-out mobile nav
+│   ├── ui/
+│   │   ├── Button.tsx          # Primary/secondary/outline with angular clip-path
+│   │   ├── SectionHeading.tsx  # h2 + blue accent bar
+│   │   └── Card.tsx            # Dark card with blue glow hover
+│   ├── home/
+│   │   ├── Hero.tsx            # Full-viewport hero with noise texture
+│   │   ├── ValueProps.tsx      # 4 icon cards
+│   │   ├── ServicesPreview.tsx  # Top 3 services grid
+│   │   └── CTABanner.tsx       # Full-width urgency CTA
+│   ├── contact/
+│   │   ├── ContactForm.tsx     # Client component with validation + honeypot
+│   │   ├── ContactInfo.tsx     # Phone, email, hours, insurance
+│   │   └── MapEmbed.tsx        # Google Maps iframe
+│   └── common/
+│       ├── ClickToCall.tsx     # Fixed bottom bar on mobile
+│       └── JsonLd.tsx          # LocalBusiness structured data
+├── lib/
+│   ├── constants.ts            # Business info, service cities, nav links
+│   ├── metadata.ts             # SEO metadata helpers
+│   ├── services-data.ts        # Service definitions
+│   └── reviews-data.ts         # Testimonial data
+└── types/
+    └── index.ts                # ContactFormData, FormState
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Design
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Theme:** Dark (zinc-950 bg, zinc-900 cards, zinc-800 borders)
+- **Primary accent:** Royal Blue (`blue-600` / #2563EB)
+- **Urgency accent:** Red (#DC2626) for CTA messaging
+- **Rockstar touches:** Angular button clip-paths, diagonal section dividers, noise texture on hero, blue glow hover effects on cards
+- **Mobile:** Hamburger menu, stacked layouts, fixed bottom click-to-call bar
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## SEO
 
-## Learn More
+- Per-page metadata with title template `%s | Rockstar Windshield Repair`
+- LocalBusiness JSON-LD structured data
+- Dynamic `sitemap.xml` and `robots.txt`
+- Semantic HTML with alt text on all images
+- Canonical URLs
 
-To learn more about Next.js, take a look at the following resources:
+## Local Development
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm install
+npm run dev
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Open [http://localhost:3000](http://localhost:3000).
 
-## Deploy on Vercel
+## Environment Variables
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Variable | Description |
+|---|---|
+| `RESEND_API_KEY` | API key for Resend email service (contact form) |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Create a `.env.local` file:
+
+```
+RESEND_API_KEY=re_xxxxxxxxxxxx
+```
+
+## Build
+
+```bash
+npm run build
+npm run start
+```
+
+## Deployment (AWS Elastic Beanstalk)
+
+The site deploys to Elastic Beanstalk with the following config:
+
+- **Application:** `rockstar-windshield-repair`
+- **Environment:** `rswr-production`
+- **Platform:** Node.js 22 on 64bit Amazon Linux 2023
+- **Instance:** t3.small
+- **Load Balancer:** ALB with HTTPS (ACM certificate)
+
+### Deploy a new version
+
+```bash
+# Build the deployment zip
+zip -r deploy.zip . -x "node_modules/*" ".git/*" ".next/*"
+
+# Upload to S3
+aws s3 cp deploy.zip s3://elasticbeanstalk-us-east-1-973196283632/rswr/deploy.zip
+
+# Create version and deploy
+aws elasticbeanstalk create-application-version \
+  --application-name rockstar-windshield-repair \
+  --version-label vX \
+  --source-bundle S3Bucket=elasticbeanstalk-us-east-1-973196283632,S3Key=rswr/deploy.zip
+
+aws elasticbeanstalk update-environment \
+  --environment-name rswr-production \
+  --version-label vX
+```
+
+### EB Configuration Files
+
+- `.ebextensions/01-nodecommand.config` — Environment settings (instance type, proxy, env vars)
+- `.platform/hooks/predeploy/01_build.sh` — Runs `npm run build` before deployment
+- `Procfile` — Starts the app with `npm run start`
+
+## DNS (Route 53)
+
+- **Hosted Zone:** `rockstarwindshield.repair` (Z00152269ZHHL7BWWEO5)
+- **A Record:** Alias to EB ALB
+- **www CNAME:** Points to EB environment
+- **Email:** Google Workspace (MX, DKIM, SPF, DMARC) — do not modify
+
+## Services Offered
+
+- Chip & Stone Break Repair (star breaks, bullseye, dings)
+- Crack Repair (up to 12 inches)
+- Mobile Service (we come to you)
+- Insurance Claims (direct billing, zero out-of-pocket)
+- Fleet & Commercial (priority scheduling, volume pricing)
+- Windshield Assessment (free damage evaluation)
+
+## Service Area
+
+Little Rock, North Little Rock, Conway, Benton, Bryant, Jacksonville, Cabot, Sherwood, Maumelle, Hot Springs
+
+## Contact
+
+- **Phone:** 501-282-7129
+- **Email:** drake@rockstarwindshield.repair
+- **Domain:** rockstarwindshield.repair
