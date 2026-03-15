@@ -23,12 +23,9 @@ export default function Home() {
             What People Are Saying
           </SectionHeading>
 
-          <div className="flex gap-6 overflow-x-auto pb-4 snap-x snap-mandatory">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {topReviews.map((review, i) => (
-              <Card
-                key={i}
-                className="min-w-[300px] flex-shrink-0 snap-start md:min-w-[350px]"
-              >
+              <Card key={i}>
                 <div className="flex gap-1">
                   {Array.from({ length: review.rating }).map((_, j) => (
                     <Star

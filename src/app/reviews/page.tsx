@@ -20,7 +20,7 @@ export default function ReviewsPage() {
           Customer Reviews
         </SectionHeading>
 
-        <div className="columns-1 gap-6 sm:columns-2 lg:columns-3">
+        <div className="columns-1 gap-6 overflow-hidden sm:columns-2 lg:columns-3">
           {REVIEWS.map((review, i) => (
             <div key={i} className="mb-6 break-inside-avoid">
               <Card>
