@@ -73,7 +73,7 @@ const faqs = [
   {
     question: "Do you offer a warranty on repairs?",
     answer:
-      "Every repair comes with a 3-year warranty. If a repaired chip or crack fails within that period, we'll fix it again at no charge. And if the damage ends up needing a full replacement down the road, we'll deduct the cost of your original repair from the price of a new windshield. You never lose what you paid.",
+      "Every repair comes with a 3-year warranty. If a repaired chip or crack fails within that period, we'll fix it again at no charge. And if the damage ends up needing a full replacement down the road, we'll deduct the cost of your original repair from the price of a new windshield through our replacement partner. You never lose what you paid.",
   },
 ];
 
