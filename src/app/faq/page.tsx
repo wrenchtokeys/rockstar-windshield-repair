@@ -70,6 +70,11 @@ const faqs = [
     answer:
       "Yes — we carry full liability insurance on every job. That means if anything happens to your vehicle while we're working on it, you're covered. You should never let anyone touch your windshield who can't show proof of insurance.",
   },
+  {
+    question: "Do you offer a warranty on repairs?",
+    answer:
+      "Every repair comes with a 3-year warranty. If a repaired chip or crack fails within that period, we'll fix it again at no charge. And if the damage ends up needing a full replacement down the road, we'll deduct the cost of your original repair from the price of a new windshield. You never lose what you paid.",
+  },
 ];
 
 export default function FAQPage() {
