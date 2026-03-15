@@ -1,6 +1,6 @@
 "use server";
 
-import sgMail from "@sendgrid/mail";
+import { Resend } from "resend";
 import { BUSINESS } from "@/lib/constants";
 import type { FormState } from "@/types";
 
@@ -26,23 +26,20 @@ export async function submitContactForm(
     return { success: false, message: "Please provide your name and phone number." };
   }
 
-  const apiKey = process.env.SENDGRID_API_KEY;
+  const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
-    console.error("SENDGRID_API_KEY is not set");
+    console.error("RESEND_API_KEY is not set");
     return {
       success: false,
-      message: "Something went wrong. Please call us directly at " + BUSINESS.phone,
+      message: `We're having trouble with our form. Please call us at ${BUSINESS.phone} or email ${BUSINESS.email} directly.`,
     };
   }
 
-  sgMail.setApiKey(apiKey);
+  const resend = new Resend(apiKey);
 
   try {
-    await sgMail.send({
-      from: {
-        email: process.env.SENDGRID_FROM_EMAIL || "notifications@rockstarwindshield.repair",
-        name: BUSINESS.name + " Website",
-      },
+    await resend.emails.send({
+      from: `${BUSINESS.name} Website <noreply@${BUSINESS.domain}>`,
       to: BUSINESS.email,
       subject: `New Quote Request from ${name}`,
       text: [
@@ -79,7 +76,7 @@ export async function submitContactForm(
     console.error("Failed to send email:", error);
     return {
       success: false,
-      message: "Something went wrong. Please call us directly at " + BUSINESS.phone,
+      message: `We're having trouble with our form. Please call us at ${BUSINESS.phone} or email ${BUSINESS.email} directly.`,
     };
   }
 }
