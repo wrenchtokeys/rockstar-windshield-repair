@@ -1,9 +1,9 @@
 export const BUSINESS = {
   name: "Rockstar Windshield Repair",
   tagline: "Rock-Solid Windshield Repair",
-  phone: "501-282-7129",
-  phoneHref: "tel:+15012827129",
-  email: "drake@rockstarwindshield.repair",
+  phone: process.env.NEXT_PUBLIC_BUSINESS_PHONE || "",
+  phoneHref: `tel:+1${(process.env.NEXT_PUBLIC_BUSINESS_PHONE || "").replace(/\D/g, "")}`,
+  email: process.env.NEXT_PUBLIC_BUSINESS_EMAIL || "",
   domain: "rockstarwindshield.repair",
   address: {
     city: "Little Rock",

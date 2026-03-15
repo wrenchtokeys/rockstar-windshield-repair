@@ -7,7 +7,7 @@ import MapEmbed from "@/components/contact/MapEmbed";
 
 export const metadata: Metadata = createMetadata(
   "Contact Us",
-  "Get a free windshield repair quote in Little Rock, AR. Call 501-282-7129 or fill out our contact form for same-day service.",
+  "Get a free windshield repair quote in Little Rock, AR. Fill out our contact form or call us for same-day service.",
   "/contact"
 );
 

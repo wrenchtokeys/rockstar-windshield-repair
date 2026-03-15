@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     template: `%s | ${BUSINESS.name}`,
   },
   description:
-    "Professional mobile windshield repair in Little Rock, AR. Same-day service, insurance claims assistance, fleet services, and lifetime warranty. Fully insured. Call 501-282-7129.",
+    "Professional mobile windshield repair in Little Rock, AR. Same-day service, insurance claims assistance, fleet services, and lifetime warranty. Fully insured.",
   metadataBase: new URL(`https://${BUSINESS.domain}`),
 };
 

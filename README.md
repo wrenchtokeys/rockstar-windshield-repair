@@ -108,11 +108,15 @@ Open [http://localhost:3000](http://localhost:3000).
 | Variable | Description |
 |---|---|
 | `RESEND_API_KEY` | API key for Resend email service (contact form) |
+| `NEXT_PUBLIC_BUSINESS_PHONE` | Business phone number (e.g. `555-555-5555`) |
+| `NEXT_PUBLIC_BUSINESS_EMAIL` | Business contact email |
 
 Create a `.env.local` file:
 
 ```
 RESEND_API_KEY=re_xxxxxxxxxxxx
+NEXT_PUBLIC_BUSINESS_PHONE=555-555-5555
+NEXT_PUBLIC_BUSINESS_EMAIL=contact@example.com
 ```
 
 ## Build
@@ -180,6 +184,5 @@ Little Rock, North Little Rock, Conway, Benton, Bryant, Jacksonville, Cabot, She
 
 ## Contact
 
-- **Phone:** 501-282-7129
-- **Email:** drake@rockstarwindshield.repair
 - **Domain:** rockstarwindshield.repair
+- Phone and email are configured via environment variables (see above)
