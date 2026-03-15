@@ -42,6 +42,12 @@ const galleryItems = [
     before: "/images/gallery/before-5.jpeg",
     after: "/images/gallery/after-5.jpeg",
   },
+  {
+    title: "Star Break Repair",
+    tag: "Chip Repair",
+    before: "/images/gallery/before-6.jpeg",
+    after: "/images/gallery/after-6.jpeg",
+  },
 ];
 
 export default function GalleryPage() {
