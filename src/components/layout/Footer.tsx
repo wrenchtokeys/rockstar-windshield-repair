@@ -26,9 +26,9 @@ export default function Footer() {
 
           {/* Quick Links */}
           <div>
-            <h4 className="font-heading text-sm font-bold uppercase tracking-widest text-blue-600">
+            <h3 className="font-heading text-sm font-bold uppercase tracking-widest text-blue-600">
               Quick Links
-            </h4>
+            </h3>
             <nav className="mt-3 flex flex-col gap-2">
               {NAV_LINKS.map((link) => (
                 <Link
@@ -44,9 +44,9 @@ export default function Footer() {
 
           {/* Contact */}
           <div>
-            <h4 className="font-heading text-sm font-bold uppercase tracking-widest text-blue-600">
+            <h3 className="font-heading text-sm font-bold uppercase tracking-widest text-blue-600">
               Contact Us
-            </h4>
+            </h3>
             <div className="mt-3 flex flex-col gap-3">
               <a
                 href={BUSINESS.phoneHref}
@@ -74,7 +74,7 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-12 border-t border-zinc-800 pt-6 text-center text-sm text-zinc-500">
+        <div className="mt-12 border-t border-zinc-800 pt-6 text-center text-sm text-zinc-400">
           &copy; {new Date().getFullYear()} {BUSINESS.name}. All rights
           reserved.
         </div>

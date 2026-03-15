@@ -41,7 +41,7 @@ export default function Home() {
                   <p className="text-sm font-semibold text-white">
                     {review.name}
                   </p>
-                  <p className="text-xs text-zinc-500">{review.date}</p>
+                  <p className="text-xs text-zinc-400">{review.date}</p>
                 </div>
               </Card>
             ))}

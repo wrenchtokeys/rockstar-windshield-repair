@@ -19,7 +19,7 @@ export default function ContactInfo() {
           <Phone className="h-5 w-5 text-blue-600" />
         </div>
         <div>
-          <p className="text-xs text-zinc-500">Phone</p>
+          <p className="text-xs text-zinc-400">Phone</p>
           <p className="font-semibold">{BUSINESS.phone}</p>
         </div>
       </a>
@@ -32,7 +32,7 @@ export default function ContactInfo() {
           <Mail className="h-5 w-5 text-blue-600" />
         </div>
         <div>
-          <p className="text-xs text-zinc-500">Email</p>
+          <p className="text-xs text-zinc-400">Email</p>
           <p className="font-semibold">{BUSINESS.email}</p>
         </div>
       </a>
@@ -42,7 +42,7 @@ export default function ContactInfo() {
           <MapPin className="h-5 w-5 text-blue-600" />
         </div>
         <div>
-          <p className="text-xs text-zinc-500">Service Area</p>
+          <p className="text-xs text-zinc-400">Service Area</p>
           <p className="font-semibold">
             {BUSINESS.address.city}, {BUSINESS.address.state} &amp; Surrounding Areas
           </p>
@@ -54,7 +54,7 @@ export default function ContactInfo() {
           <Clock className="h-5 w-5 text-blue-600" />
         </div>
         <div>
-          <p className="text-xs text-zinc-500">Business Hours</p>
+          <p className="text-xs text-zinc-400">Business Hours</p>
           <p className="font-semibold">{BUSINESS.hours.weekdays}</p>
           <p className="text-sm text-zinc-400">{BUSINESS.hours.saturday}</p>
           <p className="text-sm text-zinc-400">{BUSINESS.hours.sunday}</p>
@@ -66,7 +66,7 @@ export default function ContactInfo() {
           <Shield className="h-5 w-5 text-blue-600" />
         </div>
         <div>
-          <p className="text-xs text-zinc-500">Insurance</p>
+          <p className="text-xs text-zinc-400">Insurance</p>
           <p className="font-semibold">Fully Insured</p>
         </div>
       </div>

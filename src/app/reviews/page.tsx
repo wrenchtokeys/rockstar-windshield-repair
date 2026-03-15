@@ -40,9 +40,9 @@ export default function ReviewsPage() {
                     <p className="text-sm font-semibold text-white">
                       {review.name}
                     </p>
-                    <p className="text-xs text-zinc-500">{review.service}</p>
+                    <p className="text-xs text-zinc-400">{review.service}</p>
                   </div>
-                  <p className="text-xs text-zinc-500">{review.date}</p>
+                  <p className="text-xs text-zinc-400">{review.date}</p>
                 </div>
               </Card>
             </div>
