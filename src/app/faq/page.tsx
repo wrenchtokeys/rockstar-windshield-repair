@@ -68,7 +68,7 @@ const faqs = [
   {
     question: "Is Rockstar Windshield Repair insured?",
     answer:
-      "Yes — we are fully insured and bonded. Every repair is backed by our lifetime warranty on workmanship. If a repaired chip or crack ever fails, we'll re-repair or replace it at no charge.",
+      "Yes — we carry full liability insurance on every job. That means if anything happens to your vehicle while we're working on it, you're covered. You should never let anyone touch your windshield who can't show proof of insurance.",
   },
 ];
 
