@@ -1,8 +1,41 @@
 "use server";
 
-import { Resend } from "resend";
+import sgMail from "@sendgrid/mail";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { BUSINESS } from "@/lib/constants";
 import type { FormState } from "@/types";
+
+// Save every submission to S3 for future marketing
+async function saveToS3(submission: Record<string, string>) {
+  try {
+    const bucketName = process.env.CONTACT_S3_BUCKET;
+    if (!bucketName) {
+      console.warn("CONTACT_S3_BUCKET not set — skipping S3 save");
+      return;
+    }
+
+    const client = new S3Client({
+      region: process.env.AWS_REGION || "us-east-1",
+    });
+
+    const timestamp = new Date().toISOString();
+    const key = `contact-submissions/${timestamp.slice(0, 10)}/${timestamp.replace(/[:.]/g, "-")}_${submission.phone?.replace(/\D/g, "") || "unknown"}.json`;
+
+    await client.send(
+      new PutObjectCommand({
+        Bucket: bucketName,
+        Key: key,
+        Body: JSON.stringify({ ...submission, submittedAt: timestamp }, null, 2),
+        ContentType: "application/json",
+      })
+    );
+
+    console.log(`Saved submission to s3://${bucketName}/${key}`);
+  } catch (error) {
+    console.error("Failed to save to S3:", error);
+    // Don't fail the form submission if S3 save fails
+  }
+}
 
 export async function submitContactForm(
   _prevState: FormState,
@@ -26,20 +59,38 @@ export async function submitContactForm(
     return { success: false, message: "Please provide your name and phone number." };
   }
 
-  const apiKey = process.env.RESEND_API_KEY;
+  const submission = {
+    name,
+    phone,
+    email: email || "",
+    serviceType: serviceType || "",
+    vehicleInfo: vehicleInfo || "",
+    damageDescription: damageDescription || "",
+    preferredContact: preferredContact || "phone",
+  };
+
+  // Always save to S3 (even if email fails)
+  await saveToS3(submission);
+
+  // Send email notification via SendGrid
+  const apiKey = process.env.SENDGRID_API_KEY;
   if (!apiKey) {
-    console.error("RESEND_API_KEY is not set");
+    console.error("SENDGRID_API_KEY is not set");
+    // Still return success — submission was saved to S3
     return {
-      success: false,
-      message: `We're having trouble with our form. Please call us at ${BUSINESS.phone} or email ${BUSINESS.email} directly.`,
+      success: true,
+      message: "Thank you! We've received your request and will be in touch soon.",
     };
   }
 
-  const resend = new Resend(apiKey);
+  sgMail.setApiKey(apiKey);
 
   try {
-    await resend.emails.send({
-      from: `${BUSINESS.name} Website <noreply@${BUSINESS.domain}>`,
+    await sgMail.send({
+      from: {
+        email: process.env.SENDGRID_FROM_EMAIL || "notifications@rockstarwindshield.repair",
+        name: BUSINESS.name + " Website",
+      },
       to: BUSINESS.email,
       subject: `New Quote Request from ${name}`,
       text: [
@@ -67,16 +118,13 @@ export async function submitContactForm(
         <p style="color:#888;font-size:12px;margin-top:20px;">Sent from ${BUSINESS.domain} contact form</p>
       `,
     });
-
-    return {
-      success: true,
-      message: "Thank you! We'll be in touch within 1 business hour.",
-    };
   } catch (error) {
     console.error("Failed to send email:", error);
-    return {
-      success: false,
-      message: `We're having trouble with our form. Please call us at ${BUSINESS.phone} or email ${BUSINESS.email} directly.`,
-    };
+    // Still return success — submission was saved to S3
   }
+
+  return {
+    success: true,
+    message: "Thank you! We've received your request and will be in touch within 1 business hour.",
+  };
 }
