@@ -12,6 +12,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/reviews",
     "/contact",
     "/service-area",
+    "/faq",
   ];
 
   return routes.map((route) => ({
