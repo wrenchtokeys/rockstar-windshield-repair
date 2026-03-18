@@ -75,8 +75,15 @@ export default function Footer() {
         </div>
 
         <div className="mt-12 border-t border-zinc-800 pt-6 text-center text-sm text-zinc-400">
-          &copy; {new Date().getFullYear()} {BUSINESS.name}. All rights
-          reserved.
+          <p>
+            &copy; {new Date().getFullYear()} {BUSINESS.name}. All rights
+            reserved.
+          </p>
+          <p className="mt-2">
+            <Link href="/privacy" className="hover:text-white transition-colors">
+              Privacy Policy
+            </Link>
+          </p>
         </div>
       </div>
     </footer>
