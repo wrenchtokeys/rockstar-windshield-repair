@@ -33,8 +33,91 @@ async function saveToS3(submission: Record<string, string>) {
     console.log(`Saved submission to s3://${bucketName}/${key}`);
   } catch (error) {
     console.error("Failed to save to S3:", error);
-    // Don't fail the form submission if S3 save fails
   }
+}
+
+function buildBrandedEmail({
+  headline,
+  paragraphs,
+  detailRows,
+  buttonText,
+  buttonUrl,
+  footerNote,
+}: {
+  headline: string;
+  paragraphs: string[];
+  detailRows?: { label: string; value: string }[];
+  buttonText?: string;
+  buttonUrl?: string;
+  footerNote?: string;
+}): string {
+  const paragraphsHtml = paragraphs
+    .map(
+      (p) =>
+        `<p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.6;">${p}</p>`
+    )
+    .join("");
+
+  const detailsHtml = detailRows
+    ? `<div style="background-color:#f9fafb;border-radius:8px;padding:16px;margin-bottom:20px;">
+        <table style="width:100%;font-size:14px;">
+          ${detailRows
+            .map(
+              (r) =>
+                `<tr><td style="padding:6px 0;color:#6b7280;">${r.label}</td><td style="text-align:right;font-weight:600;color:#111827;">${r.value}</td></tr>`
+            )
+            .join("")}
+        </table>
+      </div>`
+    : "";
+
+  const buttonHtml =
+    buttonText && buttonUrl
+      ? `<div style="text-align:center;margin:24px 0;">
+          <a href="${buttonUrl}" style="display:inline-block;padding:14px 32px;background-color:#dc2626;color:#ffffff;text-decoration:none;font-size:16px;font-weight:600;border-radius:8px;">
+            ${buttonText}
+          </a>
+        </div>`
+      : "";
+
+  const footerHtml = footerNote
+    ? `<p style="font-size:13px;color:#9ca3af;text-align:center;margin:20px 0 0;">${footerNote}</p>`
+    : "";
+
+  return `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background-color:#f3f4f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<div style="max-width:600px;margin:0 auto;padding:20px;">
+
+<!-- Header -->
+<div style="background-color:#1a1a2e;padding:24px;border-radius:12px 12px 0 0;text-align:center;">
+  <h1 style="margin:0;color:#ffffff;font-size:22px;font-weight:700;">⭐ ${BUSINESS.name}</h1>
+  <p style="margin:6px 0 0;color:#94a3b8;font-size:13px;">${BUSINESS.tagline}</p>
+</div>
+
+<!-- Body -->
+<div style="background-color:#ffffff;padding:32px 40px;border:1px solid #e5e7eb;border-top:none;">
+  <h2 style="font-size:22px;color:#111827;margin:0 0 20px;font-weight:700;">${headline}</h2>
+  ${paragraphsHtml}
+  ${detailsHtml}
+  ${buttonHtml}
+  ${footerHtml}
+</div>
+
+<!-- Footer -->
+<div style="padding:16px 24px;text-align:center;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 12px 12px;background-color:#f9fafb;">
+  <p style="margin:0;font-size:13px;color:#6b7280;font-weight:600;">${BUSINESS.name}</p>
+  <p style="margin:4px 0 0;font-size:12px;color:#9ca3af;">${BUSINESS.address.city}, ${BUSINESS.address.state}</p>
+  <p style="margin:4px 0 0;font-size:12px;color:#9ca3af;">
+    <a href="tel:${BUSINESS.phone}" style="color:#dc2626;text-decoration:none;">${BUSINESS.phone}</a>
+    ${BUSINESS.email ? ` · <a href="mailto:${BUSINESS.email}" style="color:#dc2626;text-decoration:none;">${BUSINESS.email}</a>` : ""}
+  </p>
+</div>
+
+</div>
+</body>
+</html>`;
 }
 
 export async function submitContactForm(
@@ -72,11 +155,10 @@ export async function submitContactForm(
   // Always save to S3 (even if email fails)
   await saveToS3(submission);
 
-  // Send email notification via SendGrid
+  // Send emails via SendGrid
   const apiKey = process.env.SENDGRID_API_KEY;
   if (!apiKey) {
     console.error("SENDGRID_API_KEY is not set");
-    // Still return success — submission was saved to S3
     return {
       success: true,
       message: "Thank you! We've received your request and will be in touch soon.",
@@ -84,43 +166,63 @@ export async function submitContactForm(
   }
 
   sgMail.setApiKey(apiKey);
+  const fromEmail = process.env.SENDGRID_FROM_EMAIL || "notifications@rockstarwindshield.repair";
 
+  // 1. Send notification to Drake
   try {
     await sgMail.send({
-      from: {
-        email: process.env.SENDGRID_FROM_EMAIL || "notifications@rockstarwindshield.repair",
-        name: BUSINESS.name + " Website",
-      },
+      from: { email: fromEmail, name: BUSINESS.name + " Website" },
       to: BUSINESS.email,
-      subject: `New Quote Request from ${name}`,
-      text: [
-        `New quote request from ${BUSINESS.domain}`,
-        "",
-        `Name: ${name}`,
-        `Phone: ${phone}`,
-        `Email: ${email || "Not provided"}`,
-        `Service: ${serviceType || "Not specified"}`,
-        `Vehicle: ${vehicleInfo || "Not provided"}`,
-        `Damage: ${damageDescription || "Not described"}`,
-        `Preferred Contact: ${preferredContact || "Phone"}`,
-      ].join("\n"),
-      html: `
-        <h2>New Quote Request</h2>
-        <table style="border-collapse:collapse;width:100%;max-width:500px;">
-          <tr><td style="padding:8px;border-bottom:1px solid #eee;font-weight:bold;">Name</td><td style="padding:8px;border-bottom:1px solid #eee;">${name}</td></tr>
-          <tr><td style="padding:8px;border-bottom:1px solid #eee;font-weight:bold;">Phone</td><td style="padding:8px;border-bottom:1px solid #eee;"><a href="tel:${phone}">${phone}</a></td></tr>
-          <tr><td style="padding:8px;border-bottom:1px solid #eee;font-weight:bold;">Email</td><td style="padding:8px;border-bottom:1px solid #eee;">${email || "Not provided"}</td></tr>
-          <tr><td style="padding:8px;border-bottom:1px solid #eee;font-weight:bold;">Service</td><td style="padding:8px;border-bottom:1px solid #eee;">${serviceType || "Not specified"}</td></tr>
-          <tr><td style="padding:8px;border-bottom:1px solid #eee;font-weight:bold;">Vehicle</td><td style="padding:8px;border-bottom:1px solid #eee;">${vehicleInfo || "Not provided"}</td></tr>
-          <tr><td style="padding:8px;border-bottom:1px solid #eee;font-weight:bold;">Damage</td><td style="padding:8px;border-bottom:1px solid #eee;">${damageDescription || "Not described"}</td></tr>
-          <tr><td style="padding:8px;border-bottom:1px solid #eee;font-weight:bold;">Contact Via</td><td style="padding:8px;border-bottom:1px solid #eee;">${preferredContact || "Phone"}</td></tr>
-        </table>
-        <p style="color:#888;font-size:12px;margin-top:20px;">Sent from ${BUSINESS.domain} contact form</p>
-      `,
+      subject: `🔔 New Quote Request — ${name} (${serviceType || "General"})`,
+      text: `New quote request from ${name}\nPhone: ${phone}\nEmail: ${email || "N/A"}\nService: ${serviceType || "N/A"}\nVehicle: ${vehicleInfo || "N/A"}\nDamage: ${damageDescription || "N/A"}\nPreferred Contact: ${preferredContact || "Phone"}`,
+      html: buildBrandedEmail({
+        headline: "New Quote Request!",
+        paragraphs: [
+          `<strong>${name}</strong> just submitted a quote request from the website.`,
+        ],
+        detailRows: [
+          { label: "Name", value: name },
+          { label: "Phone", value: `<a href="tel:${phone}" style="color:#dc2626;text-decoration:none;">${phone}</a>` },
+          { label: "Email", value: email || "Not provided" },
+          { label: "Service", value: serviceType || "Not specified" },
+          { label: "Vehicle", value: vehicleInfo || "Not provided" },
+          { label: "Damage", value: damageDescription || "Not described" },
+          { label: "Contact Via", value: preferredContact || "Phone" },
+        ],
+        buttonText: `📞 Call ${name}`,
+        buttonUrl: `tel:${phone}`,
+      }),
     });
   } catch (error) {
-    console.error("Failed to send email:", error);
-    // Still return success — submission was saved to S3
+    console.error("Failed to send notification email:", error);
+  }
+
+  // 2. Send confirmation to customer (if they provided email)
+  if (email) {
+    try {
+      await sgMail.send({
+        from: { email: fromEmail, name: BUSINESS.name },
+        to: email,
+        subject: `We got your request, ${name}! — ${BUSINESS.name}`,
+        text: `Hi ${name},\n\nThanks for reaching out to ${BUSINESS.name}! We received your windshield repair request and will be in touch within 1 business hour.\n\nIf you need immediate assistance, give us a call at ${BUSINESS.phone}.\n\n— ${BUSINESS.name}`,
+        html: buildBrandedEmail({
+          headline: `Thanks, ${name}!`,
+          paragraphs: [
+            `We received your windshield repair request and will be in touch within <strong>1 business hour</strong>.`,
+            `If you need immediate assistance, give us a call — we're happy to help.`,
+          ],
+          detailRows: [
+            { label: "Service", value: serviceType || "Windshield Repair" },
+            { label: "Vehicle", value: vehicleInfo || "To be discussed" },
+          ],
+          buttonText: `📞 Call Us Now — ${BUSINESS.phone}`,
+          buttonUrl: BUSINESS.phoneHref,
+          footerNote: "You're receiving this because you submitted a request on rockstarwindshield.repair",
+        }),
+      });
+    } catch (error) {
+      console.error("Failed to send confirmation email:", error);
+    }
   }
 
   return {
