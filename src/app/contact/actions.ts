@@ -161,7 +161,7 @@ export async function submitContactForm(
     console.error("SENDGRID_API_KEY is not set");
     return {
       success: true,
-      message: "Thank you! We've received your request and will be in touch soon.",
+      message: "Thank you! We've received your request and will get back to you as soon as possible.",
     };
   }
 
@@ -200,24 +200,26 @@ export async function submitContactForm(
   // 2. Send confirmation to customer (if they provided email)
   if (email) {
     try {
+      const detailRows = [];
+      if (serviceType) detailRows.push({ label: "Service", value: serviceType });
+      if (vehicleInfo) detailRows.push({ label: "Vehicle", value: vehicleInfo });
+      if (damageDescription) detailRows.push({ label: "Details", value: damageDescription.length > 80 ? damageDescription.slice(0, 80) + "..." : damageDescription });
+
       await sgMail.send({
         from: { email: fromEmail, name: BUSINESS.name },
         to: email,
         subject: `We got your request, ${name}! — ${BUSINESS.name}`,
-        text: `Hi ${name},\n\nThanks for reaching out to ${BUSINESS.name}! We received your windshield repair request and will be in touch within 1 business hour.\n\nIf you need immediate assistance, give us a call at ${BUSINESS.phone}.\n\n— ${BUSINESS.name}`,
+        text: `Hi ${name},\n\nThanks for reaching out to ${BUSINESS.name}! We received your windshield repair request and will get back to you as soon as possible.\n\nIf you need immediate assistance, give us a call at ${BUSINESS.phone}.\n\n— ${BUSINESS.name}`,
         html: buildBrandedEmail({
-          headline: `Thanks, ${name}!`,
+          headline: `Thanks for reaching out, ${name}!`,
           paragraphs: [
-            `We received your windshield repair request and will be in touch within <strong>1 business hour</strong>.`,
-            `If you need immediate assistance, give us a call — we're happy to help.`,
-          ],
-          detailRows: [
-            { label: "Service", value: serviceType || "Windshield Repair" },
-            { label: "Vehicle", value: vehicleInfo || "To be discussed" },
-          ],
-          buttonText: `📞 Call Us Now — ${BUSINESS.phone}`,
+            `We've received your windshield repair request and a member of our team will get back to you <strong>as soon as possible</strong>.`,
+            detailRows.length > 0 ? `Here's a summary of what you submitted:` : ``,
+          ].filter(Boolean),
+          detailRows: detailRows.length > 0 ? detailRows : undefined,
+          buttonText: `📞 Need Us Sooner? Call Now`,
           buttonUrl: BUSINESS.phoneHref,
-          footerNote: "You're receiving this because you submitted a request on rockstarwindshield.repair",
+          footerNote: "You're receiving this because you submitted a quote request on rockstarwindshield.repair",
         }),
       });
     } catch (error) {
@@ -227,6 +229,6 @@ export async function submitContactForm(
 
   return {
     success: true,
-    message: "Thank you! We've received your request and will be in touch within 1 business hour.",
+    message: "Thank you! We've received your request and will get back to you as soon as possible.",
   };
 }

@@ -3,8 +3,14 @@
 import { useActionState } from "react";
 import { submitContactForm } from "@/app/contact/actions";
 import Button from "@/components/ui/Button";
-import { SERVICES } from "@/lib/services-data";
 import type { FormState } from "@/types";
+
+const SERVICE_OPTIONS = [
+  "Chip Repair",
+  "Crack Repair",
+  "Fleet & Commercial",
+  "Assessment",
+] as const;
 
 const initialState: FormState = {
   success: false,
@@ -91,9 +97,9 @@ export default function ContactForm() {
             className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2.5 text-sm text-white focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
           >
             <option value="">Select a service</option>
-            {SERVICES.map((s) => (
-              <option key={s.slug} value={s.title}>
-                {s.title}
+            {SERVICE_OPTIONS.map((s) => (
+              <option key={s} value={s}>
+                {s}
               </option>
             ))}
           </select>
