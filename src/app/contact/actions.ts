@@ -92,7 +92,7 @@ function buildBrandedEmail({
 
 <!-- Header -->
 <div style="background-color:#1a1a2e;padding:24px;border-radius:12px 12px 0 0;text-align:center;">
-  <h1 style="margin:0;color:#ffffff;font-size:22px;font-weight:700;">⭐ ${BUSINESS.name}</h1>
+  <h1 style="margin:0;color:#ffffff;font-size:22px;font-weight:700;">${BUSINESS.name}</h1>
   <p style="margin:6px 0 0;color:#94a3b8;font-size:13px;">${BUSINESS.tagline}</p>
 </div>
 
@@ -173,7 +173,7 @@ export async function submitContactForm(
     await sgMail.send({
       from: { email: fromEmail, name: BUSINESS.name + " Website" },
       to: BUSINESS.email,
-      subject: `🔔 New Quote Request — ${name} (${serviceType || "General"})`,
+      subject: `New Quote Request — ${name} (${serviceType || "General"})`,
       text: `New quote request from ${name}\nPhone: ${phone}\nEmail: ${email || "N/A"}\nService: ${serviceType || "N/A"}\nVehicle: ${vehicleInfo || "N/A"}\nDamage: ${damageDescription || "N/A"}\nPreferred Contact: ${preferredContact || "Phone"}`,
       html: buildBrandedEmail({
         headline: "New Quote Request!",
@@ -189,7 +189,7 @@ export async function submitContactForm(
           { label: "Damage", value: damageDescription || "Not described" },
           { label: "Contact Via", value: preferredContact || "Phone" },
         ],
-        buttonText: `📞 Call ${name}`,
+        buttonText: `Call ${name}`,
         buttonUrl: `tel:${phone}`,
       }),
     });
@@ -217,7 +217,7 @@ export async function submitContactForm(
             detailRows.length > 0 ? `Here's a summary of what you submitted:` : ``,
           ].filter(Boolean),
           detailRows: detailRows.length > 0 ? detailRows : undefined,
-          buttonText: `📞 Need Us Sooner? Call Now`,
+          buttonText: `Need Us Sooner? Call Now`,
           buttonUrl: BUSINESS.phoneHref,
           footerNote: "You're receiving this because you submitted a quote request on rockstarwindshield.repair",
         }),
