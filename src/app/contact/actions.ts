@@ -2,10 +2,41 @@
 
 import sgMail from "@sendgrid/mail";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { PutCommand } from "@aws-sdk/lib-dynamodb";
+import { docClient, TABLE_NAME } from "@/lib/dynamodb";
 import { BUSINESS } from "@/lib/constants";
 import type { FormState } from "@/types";
+import type { Submission } from "@/types/submission";
 
-// Save every submission to S3 for future marketing
+// Save to DynamoDB for the queue dashboard
+async function saveToDynamoDB(submission: Record<string, string>) {
+  try {
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const item: Submission = {
+      id,
+      name: submission.name || "",
+      phone: submission.phone || "",
+      email: submission.email || "",
+      serviceType: submission.serviceType || "",
+      vehicleInfo: submission.vehicleInfo || "",
+      damageDescription: submission.damageDescription || "",
+      preferredContact: submission.preferredContact || "phone",
+      status: "new",
+      notes: "",
+      submittedAt: new Date().toISOString(),
+    };
+
+    await docClient.send(
+      new PutCommand({ TableName: TABLE_NAME, Item: item })
+    );
+    console.log(`Saved submission ${id} to DynamoDB`);
+  } catch (error) {
+    console.error("Failed to save to DynamoDB:", error);
+    // Don't fail the form — S3 is the backup
+  }
+}
+
+// Save every submission to S3 for backup
 async function saveToS3(submission: Record<string, string>) {
   try {
     const bucketName = process.env.CONTACT_S3_BUCKET;
@@ -151,8 +182,8 @@ export async function submitContactForm(
     preferredContact: preferredContact || "phone",
   };
 
-  // Always save to S3 (even if email fails)
-  await saveToS3(submission);
+  // Save to both DynamoDB (queue) and S3 (backup)
+  await Promise.all([saveToDynamoDB(submission), saveToS3(submission)]);
 
   // Send emails via SendGrid
   const apiKey = process.env.SENDGRID_API_KEY;
