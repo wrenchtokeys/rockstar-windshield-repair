@@ -74,7 +74,7 @@ function buildBrandedEmail({
   const buttonHtml =
     buttonText && buttonUrl
       ? `<div style="text-align:center;margin:24px 0;">
-          <a href="${buttonUrl}" style="display:inline-block;padding:14px 32px;background-color:#dc2626;color:#ffffff;text-decoration:none;font-size:16px;font-weight:600;border-radius:8px;">
+          <a href="${buttonUrl}" style="display:inline-block;padding:14px 32px;background-color:#2563eb;color:#ffffff;text-decoration:none;font-size:15px;font-weight:600;border-radius:6px;letter-spacing:0.5px;text-transform:uppercase;">
             ${buttonText}
           </a>
         </div>`
@@ -87,17 +87,16 @@ function buildBrandedEmail({
   return `<!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;background-color:#f3f4f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<body style="margin:0;padding:0;background-color:#09090b;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
 <div style="max-width:600px;margin:0 auto;padding:20px;">
 
 <!-- Header -->
-<div style="background-color:#1a1a2e;padding:24px;border-radius:12px 12px 0 0;text-align:center;">
-  <h1 style="margin:0;color:#ffffff;font-size:22px;font-weight:700;">${BUSINESS.name}</h1>
-  <p style="margin:6px 0 0;color:#94a3b8;font-size:13px;">${BUSINESS.tagline}</p>
+<div style="background-color:#18181b;padding:28px 24px;border-radius:12px 12px 0 0;text-align:center;border-bottom:3px solid #2563eb;">
+  <img src="https://rockstarwindshield.repair/images/logo-white.png" alt="${BUSINESS.name}" width="200" style="width:200px;max-width:100%;height:auto;display:block;margin:0 auto;" />
 </div>
 
 <!-- Body -->
-<div style="background-color:#ffffff;padding:32px 40px;border:1px solid #e5e7eb;border-top:none;">
+<div style="background-color:#ffffff;padding:32px 40px;">
   <h2 style="font-size:22px;color:#111827;margin:0 0 20px;font-weight:700;">${headline}</h2>
   ${paragraphsHtml}
   ${detailsHtml}
@@ -106,12 +105,12 @@ function buildBrandedEmail({
 </div>
 
 <!-- Footer -->
-<div style="padding:16px 24px;text-align:center;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 12px 12px;background-color:#f9fafb;">
-  <p style="margin:0;font-size:13px;color:#6b7280;font-weight:600;">${BUSINESS.name}</p>
-  <p style="margin:4px 0 0;font-size:12px;color:#9ca3af;">${BUSINESS.address.city}, ${BUSINESS.address.state}</p>
-  <p style="margin:4px 0 0;font-size:12px;color:#9ca3af;">
-    <a href="tel:${BUSINESS.phone}" style="color:#dc2626;text-decoration:none;">${BUSINESS.phone}</a>
-    ${BUSINESS.email ? ` · <a href="mailto:${BUSINESS.email}" style="color:#dc2626;text-decoration:none;">${BUSINESS.email}</a>` : ""}
+<div style="padding:20px 24px;text-align:center;border-radius:0 0 12px 12px;background-color:#18181b;">
+  <p style="margin:0;font-size:13px;color:#a1a1aa;font-weight:600;">${BUSINESS.name}</p>
+  <p style="margin:6px 0 0;font-size:12px;color:#71717a;">${BUSINESS.address.city}, ${BUSINESS.address.state}</p>
+  <p style="margin:6px 0 0;font-size:12px;">
+    <a href="tel:${BUSINESS.phone}" style="color:#2563eb;text-decoration:none;">${BUSINESS.phone}</a>
+    ${BUSINESS.email ? ` &middot; <a href="mailto:${BUSINESS.email}" style="color:#2563eb;text-decoration:none;">${BUSINESS.email}</a>` : ""}
   </p>
 </div>
 
