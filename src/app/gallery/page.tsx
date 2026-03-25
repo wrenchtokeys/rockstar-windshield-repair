@@ -22,7 +22,7 @@ const galleryItems = [
   {
     title: "Half-Moon Break Repair",
     description:
-      "Another crescent-shaped impact caught just in time. This one sat near the passenger side where temperature swings hit hardest. Filled and cured on-site — no spreading, no replacement needed.",
+      "Another crescent-shaped impact caught just in time — right in front of the driver, hard to ignore. Filled and cured on-site, no spreading, no replacement needed.",
     tag: "Chip Repair",
     before: "/images/gallery/before-2.jpeg",
     after: "/images/gallery/after-2.jpeg",
