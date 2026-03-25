@@ -20,36 +20,28 @@ const galleryItems = [
     after: "/images/gallery/after-1.jpeg",
   },
   {
-    title: "Star Break Repair",
+    title: "Half-Moon Break Repair",
     description:
-      "Classic star break pattern from highway debris. Multiple fracture lines radiating from the impact point. Resin filled each leg of the break — now barely visible.",
+      "Another crescent-shaped impact caught just in time. This one sat near the passenger side where temperature swings hit hardest. Filled and cured on-site — no spreading, no replacement needed.",
     tag: "Chip Repair",
     before: "/images/gallery/before-2.jpeg",
     after: "/images/gallery/after-2.jpeg",
   },
   {
-    title: "Bullseye Impact Fix",
+    title: "Combination Break Repair",
     description:
-      "A direct bullseye impact with a clean circular break. One of the most common types of windshield damage. Repaired on-site at the customer's workplace in under 30 minutes.",
+      "Multiple damage types in one impact — a central chip with radiating cracks and sub-surface fracturing. These get worse fast if left alone. Repaired on-site at the customer's workplace in under 30 minutes.",
     tag: "Chip Repair",
     before: "/images/gallery/before-3.jpeg",
     after: "/images/gallery/after-3.jpeg",
   },
   {
-    title: "Crack & Chip Repair",
+    title: "Angel Wing Break Repair",
     description:
-      "Combination damage — a chip with a short crack starting to form. Caught early before it could spread across the windshield. Full repair saved hundreds over a replacement.",
+      "Two cracks spreading symmetrically from a single impact point, forming a distinctive wing pattern. This type of break can run across the full windshield quickly. Caught early and sealed before it spread.",
     tag: "Crack Repair",
     before: "/images/gallery/before-4.jpeg",
     after: "/images/gallery/after-4.jpeg",
-  },
-  {
-    title: "Stone Break Repair",
-    description:
-      "Small stone break near the windshield edge — the most critical spot for crack spreading. Repaired quickly to prevent further damage to the structural integrity.",
-    tag: "Chip Repair",
-    before: "/images/gallery/before-5.jpeg",
-    after: "/images/gallery/after-5.jpeg",
   },
   {
     title: "Star Break — Fleet Vehicle",
