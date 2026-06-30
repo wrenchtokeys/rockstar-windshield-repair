@@ -5,6 +5,11 @@ export const BUSINESS = {
   phoneHref: `tel:+1${(process.env.NEXT_PUBLIC_BUSINESS_PHONE || "").replace(/\D/g, "")}`,
   email: process.env.NEXT_PUBLIC_BUSINESS_EMAIL || "",
   domain: "rockstarwindshield.repair",
+  // Google Business Profile links. Set these once the profile is live:
+  //   NEXT_PUBLIC_GOOGLE_REVIEW_URL  → the "Get review link" URL from your GBP
+  //   NEXT_PUBLIC_GOOGLE_PROFILE_URL → your public Google Maps/Business listing URL
+  googleReviewUrl: process.env.NEXT_PUBLIC_GOOGLE_REVIEW_URL || "",
+  googleProfileUrl: process.env.NEXT_PUBLIC_GOOGLE_PROFILE_URL || "",
   address: {
     city: "Little Rock",
     state: "AR",

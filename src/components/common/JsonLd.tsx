@@ -95,14 +95,12 @@ export default function JsonLd() {
     ],
     priceRange: "$$",
     paymentAccepted: "Cash, Credit Card, Insurance",
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: "5.0",
-      reviewCount: "47",
-      bestRating: "5",
-      worstRating: "1",
-    },
-    sameAs: [],
+    // NOTE: aggregateRating intentionally omitted until there are real
+    // customer reviews. Publishing a fabricated rating/review count violates
+    // Google's structured-data policy and can get the listing penalized.
+    // Links Google to your other web presences (GBP, social). Populated from
+    // env once those URLs exist; empty entries are filtered out.
+    sameAs: [BUSINESS.googleProfileUrl].filter(Boolean),
   };
 
   const faqSchema = {

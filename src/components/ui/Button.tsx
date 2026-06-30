@@ -35,6 +35,19 @@ export default function Button({
   const styles = `${base} ${variantStyles[variant]} ${className}`;
 
   if (href) {
+    const isExternal = /^https?:\/\//.test(href);
+    if (isExternal) {
+      return (
+        <a
+          href={href}
+          className={styles}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {children}
+        </a>
+      );
+    }
     return (
       <Link href={href} className={styles}>
         {children}

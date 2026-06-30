@@ -16,38 +16,40 @@ export default function Home() {
       <ValueProps />
       <ServicesPreview />
 
-      {/* Testimonials */}
-      <section className="bg-zinc-950 py-20">
-        <div className="mx-auto max-w-7xl px-4">
-          <SectionHeading subtitle="See what our customers have to say.">
-            What People Are Saying
-          </SectionHeading>
+      {/* Testimonials — only render real reviews */}
+      {topReviews.length > 0 && (
+        <section className="bg-zinc-950 py-20">
+          <div className="mx-auto max-w-7xl px-4">
+            <SectionHeading subtitle="See what our customers have to say.">
+              What People Are Saying
+            </SectionHeading>
 
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {topReviews.map((review, i) => (
-              <Card key={i}>
-                <div className="flex gap-1">
-                  {Array.from({ length: review.rating }).map((_, j) => (
-                    <Star
-                      key={j}
-                      className="h-4 w-4 fill-blue-600 text-blue-600"
-                    />
-                  ))}
-                </div>
-                <p className="mt-3 text-sm text-zinc-300">
-                  &ldquo;{review.text}&rdquo;
-                </p>
-                <div className="mt-4 flex items-center justify-between">
-                  <p className="text-sm font-semibold text-white">
-                    {review.name}
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {topReviews.map((review, i) => (
+                <Card key={i}>
+                  <div className="flex gap-1">
+                    {Array.from({ length: review.rating }).map((_, j) => (
+                      <Star
+                        key={j}
+                        className="h-4 w-4 fill-blue-600 text-blue-600"
+                      />
+                    ))}
+                  </div>
+                  <p className="mt-3 text-sm text-zinc-300">
+                    &ldquo;{review.text}&rdquo;
                   </p>
-                  <p className="text-xs text-zinc-400">{review.date}</p>
-                </div>
-              </Card>
-            ))}
+                  <div className="mt-4 flex items-center justify-between">
+                    <p className="text-sm font-semibold text-white">
+                      {review.name}
+                    </p>
+                    <p className="text-xs text-zinc-400">{review.date}</p>
+                  </div>
+                </Card>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       <CTABanner />
     </>
