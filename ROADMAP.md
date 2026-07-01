@@ -55,32 +55,36 @@ These require info only the business owner has:
       Still need to be added to the production environment (AWS Elastic
       Beanstalk `rswr-production`) — once set, the review buttons and
       `sameAs` schema activate.
-- [ ] **Set up Places API access for live reviews** (~10 min, no recurring
-      cost at this volume):
-      1. In [Google Cloud Console](https://console.cloud.google.com/), create
-         or pick a project, enable billing (required even though usage here
-         stays in the free tier).
-      2. Enable the **Places API (New)**.
-      3. Create an API key, then restrict it: API restrictions → "Places API
-         (New)" only. (This key only runs server-side in Next.js, so no HTTP
-         referrer restriction is needed — just the API restriction.)
-      4. Look up this business's Place ID once, using that key:
-         ```
-         curl -s -X POST "https://places.googleapis.com/v1/places:searchText" \
-           -H "Content-Type: application/json" \
-           -H "X-Goog-Api-Key: YOUR_KEY" \
-           -H "X-Goog-FieldMask: places.id,places.displayName" \
-           -d '{"textQuery": "Rockstar Windshield Repair, Little Rock, AR"}'
-         ```
-         Copy the `places[0].id` value from the response.
-      5. Set both in the production environment:
-         ```
-         GOOGLE_PLACES_API_KEY=...
-         GOOGLE_PLACE_ID=...
-         ```
-      Reviews and the star rating on the site will start updating automatically
-      (up to 5 of Google's "most relevant" reviews — that's a Places API limit,
-      not configurable).
+- [ ] **Set up Places API access for live reviews** — blocked on Google's
+      indexing, not on us. Steps 1–3 are done (GCP project
+      `rockstar-windshield-repair`, billing linked, both **Places API (New)**
+      and legacy **Places API** enabled, API key created and restricted to
+      Places API (New) only). Step 4, looking up the Place ID, currently
+      fails: as of 2026-07-01 this listing returns zero results from every
+      lookup method tried — New Text Search (by name, by name+location bias),
+      New Autocomplete, legacy Find-Place-by-phone, legacy Text Search, and
+      Google's own public Place ID Finder tool (which instead surfaces an
+      unrelated same-named business in Temple, TX). The API key itself is
+      confirmed working (a control query for "Googleplex" succeeds fine), so
+      this is a real gap: Google's Places API dataset is separate from the
+      consumer Search/Maps/GBP-dashboard index, and newer or
+      address-hidden/service-area listings can take weeks to appear in it.
+      **Re-check periodically** with:
+      ```
+      curl -s -X POST "https://places.googleapis.com/v1/places:searchText" \
+        -H "Content-Type: application/json" \
+        -H "X-Goog-Api-Key: YOUR_KEY" \
+        -H "X-Goog-FieldMask: places.id,places.displayName" \
+        -d '{"textQuery": "Rockstar Windshield Repair, Little Rock, AR"}'
+      ```
+      Once it returns a `places[0].id`, set both in the production
+      environment and reviews go live automatically:
+      ```
+      GOOGLE_PLACES_API_KEY=...
+      GOOGLE_PLACE_ID=...
+      ```
+      Finishing the service-area profile setup below and adding more GBP
+      activity (photos, posts, reviews) may speed up indexing.
 - [ ] **Finish the Google Business Profile** as a *service-area business*
       (hide street address; add service-area cities: Little Rock, North Little
       Rock, Conway, Benton, Bryant, Jacksonville, Cabot, Sherwood, Maumelle,
