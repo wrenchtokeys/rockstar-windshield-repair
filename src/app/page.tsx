@@ -4,11 +4,12 @@ import ServicesPreview from "@/components/home/ServicesPreview";
 import CTABanner from "@/components/home/CTABanner";
 import SectionHeading from "@/components/ui/SectionHeading";
 import Card from "@/components/ui/Card";
-import { REVIEWS } from "@/lib/reviews-data";
+import { getGoogleReviews } from "@/lib/google-reviews";
 import { Star } from "lucide-react";
 
-export default function Home() {
-  const topReviews = REVIEWS.slice(0, 4);
+export default async function Home() {
+  const reviews = await getGoogleReviews();
+  const topReviews = reviews.slice(0, 4);
 
   return (
     <>

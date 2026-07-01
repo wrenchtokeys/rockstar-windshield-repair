@@ -31,6 +31,14 @@ local SEO). It's a living doc — update it as items ship.
 - **New config hooks** in `src/lib/constants.ts`:
   - `NEXT_PUBLIC_GOOGLE_REVIEW_URL` — the GBP "Get review link" URL.
   - `NEXT_PUBLIC_GOOGLE_PROFILE_URL` — the public Google Maps listing URL.
+- **Live Google reviews integration.** `src/lib/google-reviews.ts` pulls
+  reviews straight from the Places API (New) at request time (cached/ISR,
+  24h revalidate) — no more copy-pasting review text into a file. The home
+  page carousel, `/reviews` page, and the JSON-LD `aggregateRating` all read
+  from this live source. `reviews-data.ts` has been removed; it's obsolete.
+  Requires `GOOGLE_PLACES_API_KEY` and `GOOGLE_PLACE_ID` (see action items
+  below) — until those are set, everything falls back to empty/no-rating,
+  same as before.
 
 ---
 
@@ -38,21 +46,54 @@ local SEO). It's a living doc — update it as items ship.
 
 These require info only the business owner has:
 
+- [x] **Grab the two GBP URLs.** Found via the GBP dashboard → "Get more
+      reviews" and "Share":
+      ```
+      NEXT_PUBLIC_GOOGLE_REVIEW_URL=https://g.page/r/CZzNaFXq_6XaEBl/review
+      NEXT_PUBLIC_GOOGLE_PROFILE_URL=https://share.google/8riILqqwuhuN7cyrQ
+      ```
+      Still need to be added to the production environment (AWS Elastic
+      Beanstalk `rswr-production`) — once set, the review buttons and
+      `sameAs` schema activate.
+- [ ] **Set up Places API access for live reviews** (~10 min, no recurring
+      cost at this volume):
+      1. In [Google Cloud Console](https://console.cloud.google.com/), create
+         or pick a project, enable billing (required even though usage here
+         stays in the free tier).
+      2. Enable the **Places API (New)**.
+      3. Create an API key, then restrict it: API restrictions → "Places API
+         (New)" only. (This key only runs server-side in Next.js, so no HTTP
+         referrer restriction is needed — just the API restriction.)
+      4. Look up this business's Place ID once, using that key:
+         ```
+         curl -s -X POST "https://places.googleapis.com/v1/places:searchText" \
+           -H "Content-Type: application/json" \
+           -H "X-Goog-Api-Key: YOUR_KEY" \
+           -H "X-Goog-FieldMask: places.id,places.displayName" \
+           -d '{"textQuery": "Rockstar Windshield Repair, Little Rock, AR"}'
+         ```
+         Copy the `places[0].id` value from the response.
+      5. Set both in the production environment:
+         ```
+         GOOGLE_PLACES_API_KEY=...
+         GOOGLE_PLACE_ID=...
+         ```
+      Reviews and the star rating on the site will start updating automatically
+      (up to 5 of Google's "most relevant" reviews — that's a Places API limit,
+      not configurable).
 - [ ] **Finish the Google Business Profile** as a *service-area business*
       (hide street address; add service-area cities: Little Rock, North Little
       Rock, Conway, Benton, Bryant, Jacksonville, Cabot, Sherwood, Maumelle,
       Hot Springs).
 - [ ] **Set GBP categories** — Primary: `Auto glass repair service`;
       Secondary: `Auto repair shop`.
-- [ ] **Grab the two GBP URLs** and add them to the production environment:
-      ```
-      NEXT_PUBLIC_GOOGLE_REVIEW_URL=...    # GBP → Share → "Get review link"
-      NEXT_PUBLIC_GOOGLE_PROFILE_URL=...   # public Google Maps listing URL
-      ```
-      Once set, the review buttons and `sameAs` schema activate automatically.
-- [ ] **Collect real reviews.** Text customers the review link right after a job
-      (template lives in the project notes). Add each one to `reviews-data.ts`.
+- [ ] **Keep asking for reviews.** There are 2 real 5-star reviews so far
+      (5.0 average) — text customers the review link
+      (`NEXT_PUBLIC_GOOGLE_REVIEW_URL` above) right after a job while the
+      experience is fresh. No copy-pasting needed anymore; new reviews show
+      up on the site automatically within a day.
 - [ ] **Upload before/after photos + logo + van/on-the-job shots** to GBP.
+      (Flagged on the GBP dashboard — no new photos added in 140+ days.)
 - [ ] **Add GBP services** with descriptions + price ranges.
 - [ ] **Post weekly Google Posts** (insurance $0 out-of-pocket, mobile service,
       "small chips don't stay small", fleet pricing).
@@ -62,12 +103,6 @@ These require info only the business owner has:
 
 ## 🛠️ Near-term website upgrades
 
-- [ ] **Aggregate review schema.** Once there are real reviews, add
-      `Review` / `AggregateRating` structured data so star ratings can show in
-      search results. (Only with genuine reviews — never fabricated.)
-- [ ] **Live Google reviews integration.** Pull reviews from the Google Places
-      API and cache them (ISR / scheduled revalidate) so the site and GBP stay
-      in sync without manual copy-paste into `reviews-data.ts`.
 - [ ] **Per-city landing pages.** Dedicated, indexable pages for each service
       area (e.g. `/windshield-repair/conway`) with localized copy. Big local-SEO
       win for a service-area business — currently all cities share one page.

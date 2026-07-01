@@ -3,7 +3,7 @@ import { createMetadata } from "@/lib/metadata";
 import SectionHeading from "@/components/ui/SectionHeading";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
-import { REVIEWS } from "@/lib/reviews-data";
+import { getGoogleReviews } from "@/lib/google-reviews";
 import { BUSINESS } from "@/lib/constants";
 import { Star } from "lucide-react";
 
@@ -13,8 +13,9 @@ export const metadata: Metadata = createMetadata(
   "/reviews"
 );
 
-export default function ReviewsPage() {
-  const hasReviews = REVIEWS.length > 0;
+export default async function ReviewsPage() {
+  const reviews = await getGoogleReviews();
+  const hasReviews = reviews.length > 0;
   const reviewLink = BUSINESS.googleReviewUrl;
 
   return (
@@ -26,7 +27,7 @@ export default function ReviewsPage() {
 
         {hasReviews ? (
           <div className="columns-1 gap-6 overflow-hidden sm:columns-2 lg:columns-3">
-            {REVIEWS.map((review, i) => (
+            {reviews.map((review, i) => (
               <div key={i} className="mb-6 break-inside-avoid">
                 <Card>
                   <div className="flex gap-1">
@@ -41,12 +42,9 @@ export default function ReviewsPage() {
                     &ldquo;{review.text}&rdquo;
                   </p>
                   <div className="mt-4 flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-semibold text-white">
-                        {review.name}
-                      </p>
-                      <p className="text-xs text-zinc-400">{review.service}</p>
-                    </div>
+                    <p className="text-sm font-semibold text-white">
+                      {review.name}
+                    </p>
                     <p className="text-xs text-zinc-400">{review.date}</p>
                   </div>
                 </Card>

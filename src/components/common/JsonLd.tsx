@@ -1,6 +1,8 @@
 import { BUSINESS, SERVICE_CITIES } from "@/lib/constants";
+import { getGoogleRatingSummary } from "@/lib/google-reviews";
 
-export default function JsonLd() {
+export default async function JsonLd() {
+  const ratingSummary = await getGoogleRatingSummary();
   const localBusiness = {
     "@context": "https://schema.org",
     "@type": "AutoRepair",
@@ -95,9 +97,17 @@ export default function JsonLd() {
     ],
     priceRange: "$$",
     paymentAccepted: "Cash, Credit Card, Insurance",
-    // NOTE: aggregateRating intentionally omitted until there are real
-    // customer reviews. Publishing a fabricated rating/review count violates
-    // Google's structured-data policy and can get the listing penalized.
+    // Sourced live from the Places API — omitted until there's at least one
+    // real Google review, so this never publishes a fabricated rating.
+    ...(ratingSummary
+      ? {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: ratingSummary.rating,
+            reviewCount: ratingSummary.count,
+          },
+        }
+      : {}),
     // Links Google to your other web presences (GBP, social). Populated from
     // env once those URLs exist; empty entries are filtered out.
     sameAs: [BUSINESS.googleProfileUrl].filter(Boolean),
