@@ -68,6 +68,20 @@ now documents: the `/queue` page + review-SMS workflow, all env vars
 the `git archive` deploy method, and the two git remotes with the
 CodeCommit credential-helper quirk. Docs-only change — no deploy needed.
 
+**Also: queue password reset + rotation script.** Drake forgot the
+`/queue` password and asked for a reset. Added
+`scripts/reset-queue-password.sh` (committed `536c3d9`): generates a
+random password (or `--prompt` for a custom one — never accepts it as a
+bare argument, to avoid shell-history/`ps` leakage), then runs the full
+app-version deploy recipe (git archive → S3 → new app version →
+`update-environment` with the password change in the *same* call) so a
+reset can't accidentally become the config-only update that caused the
+2026-07-01 outage. Ran it once for real: deployed as version
+`queue-password-260703161105`, environment reached Ready/Green in ~2
+minutes, site verified 200. Drake has the new password. README's
+"Changing production env vars" section now points to the script as the
+preferred path, with the manual recipe kept as a fallback for other vars.
+
 ### What was done
 
 1. **Recovered the Place ID without the API**: decoded the g.page review

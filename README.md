@@ -208,7 +208,22 @@ This prints the current password. It changes nothing and cannot break the
 site. (Console alternative: EB → `rswr-production` → Configuration →
 Updates, monitoring, and logging → Environment properties.)
 
-### Changing production env vars (includes queue-password reset)
+### Resetting the queue password (preferred: script)
+
+```bash
+scripts/reset-queue-password.sh            # generates a random password
+scripts/reset-queue-password.sh --prompt   # or type your own (hidden input)
+```
+
+This does the full app-version deploy correctly every time (git archive →
+S3 → new app version → `update-environment` with the password change in
+the *same* call), waits for Ready/Green, and confirms the site responds
+before printing the new password. It deploys whatever commit is currently
+checked out, so commit or stash first if the tree is dirty. Never pass the
+password as a plain argument — the script refuses that on purpose, since
+it would leak into shell history and `ps` output.
+
+### Changing production env vars (manual recipe / any other var)
 
 > **⚠️ Never change env vars with a bare `update-environment
 > --option-settings` call or via the EB console alone.** EB skips the
