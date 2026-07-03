@@ -48,7 +48,11 @@ purpose: no A2P/10DLC carrier registration, no cost, and texts from a
 known number convert better. Phone numbers are sanitized to digits for
 the `sms:` URI. Note: the older bare "Text" button still uses the raw
 phone string — harmless for 10-digit input but inconsistent; candidate
-cleanup.
+cleanup. Deployed as version `review-sms-260703` (commit `65a8699`) —
+Ready/Green, verified the served `/queue` JS bundle contains the new
+flow and the review URL. Pushed to both remotes (GitHub `origin` and
+CodeCommit `codecommit-origin`; the latter needs the
+`aws codecommit credential-helper` to push).
 
 ### What was done
 
