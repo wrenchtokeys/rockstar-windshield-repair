@@ -4,6 +4,12 @@ Business website for **Rockstar Windshield Repair**, a mobile windshield repair 
 
 **Live:** [rockstarwindshield.repair](https://rockstarwindshield.repair)
 
+> **Continuing work on this repo (human or AI)?** Read
+> [`docs/SESSION_NOTES.md`](docs/SESSION_NOTES.md) first — it's a dated log
+> of what shipped, what broke, and what's still open across sessions, with
+> context that isn't in `ROADMAP.md` or git history alone. Check
+> `ROADMAP.md` for the forward-looking backlog.
+
 ---
 
 ## Tech Stack
@@ -159,7 +165,14 @@ aws elasticbeanstalk update-environment \
 ### EB Configuration Files
 
 - `.ebextensions/01-nodecommand.config` — Environment settings (instance type, proxy, env vars)
-- `.platform/hooks/predeploy/01_build.sh` — Runs `npm run build` before deployment
+- `.platform/hooks/predeploy/01_build.sh` — Runs `npm run build` before deployment.
+  **⚠️ EB skips this hook on config-only updates** (e.g. changing env vars
+  without deploying a new app version) — it only runs on full app-version
+  deploys. A config-only update flips in unbuilt source with no `.next`
+  directory and takes the site down. Always change env vars via a full
+  app-version deploy, not a bare `update-environment --option-settings`
+  call. See `docs/SESSION_NOTES.md` (2026-06-29 → 2026-07-01 entry) for the
+  incident this caused.
 - `Procfile` — Starts the app with `npm run start`
 
 ## DNS (Route 53)
