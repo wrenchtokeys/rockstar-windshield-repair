@@ -31,9 +31,10 @@ Business website for **Rockstar Windshield Repair**, a mobile windshield repair 
 | `/services` | Service cards: chip/stone break repair, crack repair, mobile service, insurance claims, fleet & commercial, windshield assessment |
 | `/about` | Company story, mission, "Why Choose Us" section |
 | `/gallery` | Before/after photo grid (placeholder images) |
-| `/reviews` | Masonry grid of customer reviews with star ratings |
+| `/reviews` | Live Google reviews (rating summary + review cards, pulled from the Places API, 24h cache) |
 | `/service-area` | Cities served with descriptions + Google Maps embed |
-| `/contact` | Contact form + business info + map (form submits via Resend) |
+| `/contact` | Contact form + business info + map (form emails via Resend **and** saves the lead to DynamoDB) |
+| `/queue` | **Private** lead dashboard — password-protected; see [Lead Queue](#lead-queue-queue) below |
 
 ## Project Structure
 
@@ -49,7 +50,11 @@ src/
 │   ├── reviews/page.tsx
 │   ├── contact/
 │   │   ├── page.tsx
-│   │   └── actions.ts          # Server action → Resend email
+│   │   └── actions.ts          # Server action → Resend email + DynamoDB lead
+│   ├── queue/page.tsx          # Lead dashboard (client, password login)
+│   ├── api/queue/
+│   │   ├── route.ts            # GET leads (auth: x-queue-auth header)
+│   │   └── [id]/route.ts       # PATCH status/notes/review-tracking, DELETE
 │   ├── service-area/page.tsx
 │   ├── not-found.tsx
 │   ├── sitemap.ts
@@ -79,9 +84,11 @@ src/
 │   ├── constants.ts            # Business info, service cities, nav links
 │   ├── metadata.ts             # SEO metadata helpers
 │   ├── services-data.ts        # Service definitions
-│   └── reviews-data.ts         # Testimonial data
+│   ├── google-reviews.ts       # Live Google reviews via Places API (24h ISR)
+│   └── dynamodb.ts             # DynamoDB doc client + table name
 └── types/
-    └── index.ts                # ContactFormData, FormState
+    ├── index.ts                # ContactFormData, FormState
+    └── submission.ts           # Submission, SubmissionStatus (queue leads)
 ```
 
 ## Design
@@ -116,6 +123,12 @@ Open [http://localhost:3000](http://localhost:3000).
 | `RESEND_API_KEY` | API key for Resend email service (contact form) |
 | `NEXT_PUBLIC_BUSINESS_PHONE` | Business phone number (e.g. `555-555-5555`) |
 | `NEXT_PUBLIC_BUSINESS_EMAIL` | Business contact email |
+| `QUEUE_PASSWORD` | Password for the `/queue` lead dashboard (server-side only — see [Lead Queue](#lead-queue-queue)) |
+| `DYNAMODB_TABLE` | DynamoDB table for leads (defaults to `rockstar-contact-submissions`) |
+| `GOOGLE_PLACES_API_KEY` | Places API (New) key — powers live reviews (GCP project `rockstar-windshield-repair`) |
+| `GOOGLE_PLACE_ID` | The GBP listing's Place ID: `ChIJgQui0ml6RmERnM1oVer_pdo` |
+| `NEXT_PUBLIC_GOOGLE_REVIEW_URL` | GBP "leave a review" link (`https://g.page/r/CZzNaFXq_6XaEBl/review`) |
+| `NEXT_PUBLIC_GOOGLE_PROFILE_URL` | Public Google listing share URL |
 
 Create a `.env.local` file:
 
@@ -123,7 +136,16 @@ Create a `.env.local` file:
 RESEND_API_KEY=re_xxxxxxxxxxxx
 NEXT_PUBLIC_BUSINESS_PHONE=555-555-5555
 NEXT_PUBLIC_BUSINESS_EMAIL=contact@example.com
+QUEUE_PASSWORD=pick-something
 ```
+
+The Google-review and DynamoDB variables are optional locally — review
+surfaces fall back to an empty state and the queue needs AWS credentials
+with DynamoDB access to work at all.
+
+> **⚠️ Changing any env var in production requires a full app-version
+> deploy** — never a bare `update-environment --option-settings` call. See
+> [Changing production env vars](#changing-production-env-vars-includes-queue-password-reset).
 
 ## Build
 
@@ -131,6 +153,104 @@ NEXT_PUBLIC_BUSINESS_EMAIL=contact@example.com
 npm run build
 npm run start
 ```
+
+## Lead Queue (`/queue`)
+
+Every contact-form submission is emailed (Resend) **and** saved as a lead
+in DynamoDB (`rockstar-contact-submissions`, us-east-1). The `/queue` page
+is a private dashboard for working those leads from a phone.
+
+### Using it
+
+1. Open [rockstarwindshield.repair/queue](https://rockstarwindshield.repair/queue)
+   and enter the queue password (see below for what to do if it's lost).
+2. Leads show as cards, newest first, auto-refreshing every 30 seconds.
+   Filter by status with the chips at the top.
+3. Each lead moves through statuses: **New → Contacted → Quoted →
+   Scheduled → Won / Lost**. The first move off "New" stamps a
+   `contactedAt` time automatically.
+4. Cards have **Call** / **Text** buttons (tel:/sms: links) and a free-form
+   **Notes** field per lead.
+5. **Review-request automation:** marking a lead **Won** auto-opens
+   Messages prefilled with that customer's number and a personalized
+   Google-review request — one tap to send, from your own phone number.
+   Won cards then show:
+   - **★ Ask for Review** — if the auto-open didn't happen (e.g. no phone).
+   - **★ Send Reminder** — appears once 24h pass with no follow-up; sends
+     the one (and only) polite reminder text.
+   - An "asked Xh ago" chip tracking what's been sent
+     (`reviewRequestedAt` / `reviewFollowupAt` in DynamoDB).
+
+### How the password works
+
+There are no user accounts. Auth is a **single shared password** stored in
+the `QUEUE_PASSWORD` environment variable on the production EB environment.
+The login form sends it in an `x-queue-auth` header; the API routes
+(`src/app/api/queue/*`) compare it server-side. It is never stored in the
+browser — closing the tab logs you out.
+
+Because of that design there is **no in-app "forgot password" flow** — the
+password lives only in the EB environment config, so recovering or changing
+it is an AWS operation:
+
+### Forgot the password? (recover it — safe, read-only)
+
+```bash
+aws elasticbeanstalk describe-configuration-settings \
+  --application-name rockstar-windshield-repair \
+  --environment-name rswr-production \
+  --region us-east-1 \
+  --query "ConfigurationSettings[0].OptionSettings[?Namespace=='aws:elasticbeanstalk:application:environment' && OptionName=='QUEUE_PASSWORD'].Value" \
+  --output text
+```
+
+This prints the current password. It changes nothing and cannot break the
+site. (Console alternative: EB → `rswr-production` → Configuration →
+Updates, monitoring, and logging → Environment properties.)
+
+### Changing production env vars (includes queue-password reset)
+
+> **⚠️ Never change env vars with a bare `update-environment
+> --option-settings` call or via the EB console alone.** EB skips the
+> predeploy build hook on config-only updates, which ships unbuilt source
+> and **takes the site down** (this happened on 2026-07-01 — ~15 min
+> outage; see `docs/SESSION_NOTES.md`). Env-var changes must ride a full
+> app-version deploy: include `--option-settings` **in the same
+> `update-environment` call as `--version-label`**.
+
+```bash
+cd /path/to/rswr_website
+
+# 1. Package the current commit
+git archive --format=zip -o deploy.zip HEAD
+
+# 2. Upload to S3
+aws s3 cp deploy.zip s3://elasticbeanstalk-us-east-1-973196283632/rswr/deploy.zip
+
+# 3. Create an application version (label: what-changed-YYMMDD)
+aws elasticbeanstalk create-application-version \
+  --application-name rockstar-windshield-repair \
+  --version-label queue-password-YYMMDD \
+  --source-bundle S3Bucket=elasticbeanstalk-us-east-1-973196283632,S3Key=rswr/deploy.zip \
+  --region us-east-1
+
+# 4. Deploy it AND set the new env var in ONE call
+aws elasticbeanstalk update-environment \
+  --environment-name rswr-production \
+  --version-label queue-password-YYMMDD \
+  --option-settings Namespace=aws:elasticbeanstalk:application:environment,OptionName=QUEUE_PASSWORD,Value=NEW_PASSWORD_HERE \
+  --region us-east-1
+
+# 5. Wait for Ready/Green, then verify
+aws elasticbeanstalk describe-environments \
+  --environment-names rswr-production --region us-east-1 \
+  --query "Environments[0].[Status,Health]" --output text
+curl -s -o /dev/null -w "%{http_code}\n" https://rockstarwindshield.repair/
+```
+
+The same recipe applies to any other env var — just swap the
+`OptionName`/`Value`. Save the new password somewhere durable (password
+manager) — the site never displays it.
 
 ## Deployment (AWS Elastic Beanstalk)
 
@@ -145,22 +265,28 @@ The site deploys to Elastic Beanstalk with the following config:
 ### Deploy a new version
 
 ```bash
-# Build the deployment zip
-zip -r deploy.zip . -x "node_modules/*" ".git/*" ".next/*"
+# Package the current commit (only tracked files — no local junk)
+git archive --format=zip -o deploy.zip HEAD
 
 # Upload to S3
 aws s3 cp deploy.zip s3://elasticbeanstalk-us-east-1-973196283632/rswr/deploy.zip
 
-# Create version and deploy
+# Create version and deploy (label convention: what-changed-YYMMDD)
 aws elasticbeanstalk create-application-version \
   --application-name rockstar-windshield-repair \
-  --version-label vX \
-  --source-bundle S3Bucket=elasticbeanstalk-us-east-1-973196283632,S3Key=rswr/deploy.zip
+  --version-label what-changed-YYMMDD \
+  --source-bundle S3Bucket=elasticbeanstalk-us-east-1-973196283632,S3Key=rswr/deploy.zip \
+  --region us-east-1
 
 aws elasticbeanstalk update-environment \
   --environment-name rswr-production \
-  --version-label vX
+  --version-label what-changed-YYMMDD \
+  --region us-east-1
 ```
+
+If the deploy also needs an env-var change, add `--option-settings` to
+that same `update-environment` call — see
+[Changing production env vars](#changing-production-env-vars-includes-queue-password-reset).
 
 ### EB Configuration Files
 
@@ -174,6 +300,19 @@ aws elasticbeanstalk update-environment \
   call. See `docs/SESSION_NOTES.md` (2026-06-29 → 2026-07-01 entry) for the
   incident this caused.
 - `Procfile` — Starts the app with `npm run start`
+
+## Git Remotes
+
+- `origin` — GitHub (`wrenchtokeys/rockstar-windshield-repair`)
+- `codecommit-origin` — AWS CodeCommit (us-west-2). A plain `git push`
+  here 403s because the macOS keychain helper interferes; push with:
+
+  ```bash
+  git -c credential.helper= \
+      -c "credential.helper=!aws codecommit credential-helper \$@" \
+      -c credential.UseHttpPath=true \
+      push codecommit-origin main
+  ```
 
 ## DNS (Route 53)
 
