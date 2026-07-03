@@ -29,6 +29,12 @@ version `review-qr-260703` (commit `e51da6e`) via the full app-version
 path — Ready/Green, QR served at `rockstarwindshield.repair/review-qr.png`,
 site health re-verified.
 
+**Also:** tightened the 404 tagline to "This page is beyond repair. Your
+windshield isn't." (commit `93616e1`). Deployed as version
+`404-copy-260703` via the full app-version path (Drake ran the AWS
+commands) — Ready/Green, verified live: home 200, unknown URL returns 404
+with the new copy.
+
 ### What was done
 
 1. **Recovered the Place ID without the API**: decoded the g.page review
