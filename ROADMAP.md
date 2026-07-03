@@ -80,16 +80,100 @@ These require info only the business owner has:
 - [ ] **Set GBP categories** — Primary: `Auto glass repair service`;
       Secondary: `Auto repair shop`.
 - [ ] **Keep asking for reviews.** There are 2 real 5-star reviews so far
-      (5.0 average) — text customers the review link
-      (`NEXT_PUBLIC_GOOGLE_REVIEW_URL` above) right after a job while the
-      experience is fresh. No copy-pasting needed anymore; new reviews show
-      up on the site automatically within a day.
+      (5.0 average) — see the **⭐ Getting more reviews** playbook below.
+      No copy-pasting needed anymore; new reviews show up on the site
+      automatically within a day.
 - [ ] **Upload before/after photos + logo + van/on-the-job shots** to GBP.
       (Flagged on the GBP dashboard — no new photos added in 140+ days.)
 - [ ] **Add GBP services** with descriptions + price ranges.
 - [ ] **Post weekly Google Posts** (insurance $0 out-of-pocket, mobile service,
       "small chips don't stay small", fleet pricing).
 - [ ] **Seed GBP Q&A** with common questions and self-answer them.
+
+---
+
+## ⭐ Getting more reviews — playbook
+
+Review link (opens the rating dialog directly):
+`https://g.page/r/CZzNaFXq_6XaEBl/review`
+
+### At the job — the moment that converts
+
+- [ ] **Ask in person at the moment of delight** — right after showing the
+      finished repair, while they're impressed. Simple word track: *"If
+      you're happy with how this turned out, a Google review is the single
+      biggest thing that helps a one-man shop like mine. Can I text you the
+      link? Takes about a minute."* An in-person ask + instant text is the
+      highest-converting combo there is; most customers who say yes and
+      get the link *while you're still there* actually follow through.
+- [ ] **Save a text template** on the phone so it's two taps after every
+      job: *"Thanks for choosing Rockstar Windshield Repair! If you have a
+      minute, a quick Google review helps more than you know:
+      https://g.page/r/CZzNaFXq_6XaEBl/review — Drake"*
+- [ ] **Ask for a photo in the review.** Reviews with photos get more
+      views and carry more weight with both readers and Google. Ask
+      naturally: *"feel free to snap a pic of the repair for the review."*
+      Before/after is a windshield repair's best sales pitch.
+- [ ] **Let them mention where/what.** If a customer naturally writes
+      "came out to Conway" or "fixed my rock chip", that text helps local
+      ranking. Can't script it — but *"mention what we fixed if you don't
+      mind"* is a fair nudge.
+
+### Print & physical
+
+- [ ] **QR-code leave-behind card** — business card / thank-you card with
+      a QR pointing at the review link, left on the dash after every job.
+      Catches the customers who weren't there during the repair (workplace
+      and driveway jobs). The QR code can be generated from the review
+      link and added to `public/` in this repo for print-ready use.
+- [ ] **QR sticker on the van/window cling** — "Happy with your repair?
+      Scan to review." Works passively at every job site.
+- [ ] **Invoice/receipt footer** — if receipts are emailed or printed, add
+      the review link and QR at the bottom.
+
+### Follow-up
+
+- [ ] **One next-day reminder text** if no review appeared — polite,
+      single follow-up only: *"No pressure at all, but if you get a minute
+      that review link is still live. Either way, thanks again!"* One
+      reminder roughly doubles follow-through; more than one annoys.
+- [ ] **Fleet/commercial jobs:** ask the fleet manager or dispatcher
+      directly — one B2B contact can be good for a detailed review that
+      mentions multiple vehicles.
+
+### Make every review work twice
+
+- [ ] **Reply to every review as the owner** (GBP dashboard → Reviews).
+      Signals engagement to Google, shows prospective customers (and
+      prospective *reviewers*) that reviews get read, and lets you
+      naturally include service keywords in the reply ("glad the chip
+      repair in North Little Rock worked out"). Reply to star-only
+      reviews too (Madison's is currently unanswered).
+- [ ] **Screenshot standout reviews** for Google Posts and social — a
+      great review is content.
+
+### Rules — don't get the listing penalized
+
+- **Never incentivize.** No discounts, freebies, or entries-to-win for
+  reviews — violates Google policy and FTC rules (same rules that forced
+  removal of the fake testimonials).
+- **No review gating.** Don't pre-filter with "how was your experience?"
+  surveys that only route happy customers to Google. Ask everyone.
+- **Customer's own phone, own account.** Never hand over a shop device to
+  "help" someone leave a review — same-device/IP reviews get filtered and
+  can flag the listing.
+- **No friends/family padding.** Only real customers.
+- **Steady beats bursts.** A review a week from real jobs looks (and is)
+  organic; ten in one weekend looks bought. The ask-every-job habit
+  produces exactly the right cadence naturally.
+
+### Website/system tie-ins (already tracked elsewhere in this doc)
+
+- Automated review-request SMS when a job is marked complete — see
+  Longer-term ideas; the `/queue` system is the natural trigger point.
+- New reviews appear on the site automatically within ~24h (ISR cache) —
+  every review earned immediately markets on rockstarwindshield.repair
+  and in the JSON-LD star data, not just on Google.
 
 ---
 
