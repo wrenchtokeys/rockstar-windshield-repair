@@ -21,6 +21,14 @@ full review; home page shows the rating badge; JSON-LD emits the real
 `aggregateRating` (5.0, 2 reviews). Environment `rswr-production` is
 Ready/Green on version `live-reviews-260703` (commit `27cc834`).
 
+**Later same day:** added a review-growth playbook to ROADMAP.md (ask
+word-tracks, SMS templates, QR leave-behinds, follow-up cadence, and the
+Google/FTC guardrails) and generated a decode-verified QR code for the
+review link (`public/review-qr.{svg,png}`, EC level H). Deployed as
+version `review-qr-260703` (commit `e51da6e`) via the full app-version
+path — Ready/Green, QR served at `rockstarwindshield.repair/review-qr.png`,
+site health re-verified.
+
 ### What was done
 
 1. **Recovered the Place ID without the API**: decoded the g.page review
