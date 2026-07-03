@@ -55,36 +55,36 @@ These require info only the business owner has:
       Still need to be added to the production environment (AWS Elastic
       Beanstalk `rswr-production`) — once set, the review buttons and
       `sameAs` schema activate.
-- [ ] **Set up Places API access for live reviews** — blocked on Google's
-      indexing, not on us. Steps 1–3 are done (GCP project
-      `rockstar-windshield-repair`, billing linked, both **Places API (New)**
-      and legacy **Places API** enabled, API key created and restricted to
-      Places API (New) only). Step 4, looking up the Place ID, currently
-      fails: as of 2026-07-01 this listing returns zero results from every
-      lookup method tried — New Text Search (by name, by name+location bias),
-      New Autocomplete, legacy Find-Place-by-phone, legacy Text Search, and
-      Google's own public Place ID Finder tool (which instead surfaces an
-      unrelated same-named business in Temple, TX). The API key itself is
-      confirmed working (a control query for "Googleplex" succeeds fine), so
-      this is a real gap: Google's Places API dataset is separate from the
-      consumer Search/Maps/GBP-dashboard index, and newer or
-      address-hidden/service-area listings can take weeks to appear in it.
-      **Re-check periodically** with:
+- [ ] **Set up Places API access for live reviews** — nearly done. Steps
+      1–3 are done (GCP project `rockstar-windshield-repair`, billing
+      linked, both **Places API (New)** and legacy **Places API** enabled,
+      API key created and restricted to Places API (New) only). Step 4, the
+      Place ID, was **recovered on 2026-07-03** by decoding the g.page
+      review-link token to the listing's CID (`15755280253345910172`) and
+      extracting the ID from the Google Maps preview payload for that CID
+      (search-based lookups still return nothing — the listing isn't in the
+      Places search index yet, but direct Place Details lookup by ID is a
+      separate path):
       ```
-      curl -s -X POST "https://places.googleapis.com/v1/places:searchText" \
-        -H "Content-Type: application/json" \
+      GOOGLE_PLACE_ID=ChIJgQui0ml6RmERnM1oVer_pdo
+      ```
+      Verified against the listing keylessly (Google's
+      `search.google.com/local/reviews?placeid=…` endpoint resolves it to
+      Rockstar Windshield Repair with the matching CID). Remaining steps:
+      confirm Place Details returns review data with the real API key —
+      ```
+      curl -s "https://places.googleapis.com/v1/places/ChIJgQui0ml6RmERnM1oVer_pdo" \
         -H "X-Goog-Api-Key: YOUR_KEY" \
-        -H "X-Goog-FieldMask: places.id,places.displayName" \
-        -d '{"textQuery": "Rockstar Windshield Repair, Little Rock, AR"}'
+        -H "X-Goog-FieldMask: rating,userRatingCount,reviews"
       ```
-      Once it returns a `places[0].id`, set both in the production
-      environment and reviews go live automatically:
+      — then set both vars in the production environment (**via a full
+      app-version deploy, never a bare config-only `update-environment` —
+      see the 2026-07-01 incident in docs/SESSION_NOTES.md**) and reviews
+      go live automatically:
       ```
-      GOOGLE_PLACES_API_KEY=...
-      GOOGLE_PLACE_ID=...
+      GOOGLE_PLACES_API_KEY=...   (GCP Console → APIs & Services → Credentials)
+      GOOGLE_PLACE_ID=ChIJgQui0ml6RmERnM1oVer_pdo
       ```
-      Finishing the service-area profile setup below and adding more GBP
-      activity (photos, posts, reviews) may speed up indexing.
 - [ ] **Finish the Google Business Profile** as a *service-area business*
       (hide street address; add service-area cities: Little Rock, North Little
       Rock, Conway, Benton, Bryant, Jacksonville, Cabot, Sherwood, Maumelle,

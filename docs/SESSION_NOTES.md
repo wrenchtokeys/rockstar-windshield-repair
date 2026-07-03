@@ -8,6 +8,56 @@ top. Read this before starting new work — it has context that isn't in
 
 ---
 
+## 2026-07-03 — Place ID recovered; review surfaces upgraded
+
+**Starting point:** live-review plumbing shipped last session but inert —
+the Place ID couldn't be found via any Places API search, so
+`GOOGLE_PLACE_ID`/`GOOGLE_PLACES_API_KEY` were never set in production and
+`/reviews` still shows the "be one of our first reviews" empty state.
+
+### What was done
+
+1. **Recovered the Place ID without the API**: decoded the g.page review
+   link token (`CZzNaFXq_6XaEBl` → protobuf → CID `15755280253345910172`),
+   fetched `maps.google.com/?cid=<CID>`, and extracted the Place ID from
+   the embedded `/maps/preview/place` payload:
+   **`ChIJgQui0ml6RmERnM1oVer_pdo`**. Cross-checked keylessly:
+   `search.google.com/local/reviews?placeid=…` resolves it to Rockstar
+   Windshield Repair with the matching ludocid. Search indexing is still
+   missing (that part of last session's finding stands), but Place
+   *Details* lookup by ID is a different path and should work.
+2. **Upgraded review surfaces** (uncommitted at time of writing):
+   - `/reviews`: live rating-summary card (big 5.0 + stars + "Based on N
+     Google reviews" + profile link) — this also surfaces star-only
+     ratings that can't render as text cards; "Read all of our reviews on
+     Google" link under the cards; stronger always-present
+     leave-a-review CTA card.
+   - Home page: rating badge (5.0 ★★★★★ · N Google reviews → /reviews)
+     under the "What People Are Saying" heading; section now renders when
+     a rating summary exists even before any text reviews do.
+   - Verified end-to-end with a temporary mock of the Places response
+     (dev server, curl assertions on `/`, `/reviews`, and the JSON-LD
+     `aggregateRating`), then reverted the mock. `npm run build` clean.
+3. **Updated ROADMAP.md** with the recovered Place ID and remaining steps.
+
+### What's still open
+
+- [ ] **Verify Place Details with the real API key** (curl in ROADMAP.md).
+      The key isn't stored in this repo or this machine — pull from GCP
+      Console → APIs & Services → Credentials (project
+      `rockstar-windshield-repair`).
+- [ ] **Deploy**: commit the review-surface changes, then set
+      `GOOGLE_PLACES_API_KEY` + `GOOGLE_PLACE_ID=ChIJgQui0ml6RmERnM1oVer_pdo`
+      in `rswr-production` **via a full app-version deploy** (config-only
+      env changes skip the predeploy build hook and take the site down —
+      see the 2026-07-01 incident below).
+- [ ] **Predeploy-hook fragility still unfixed** (see 2026-07-01 entry).
+- [ ] If Place Details by ID unexpectedly also 404s, fall back to waiting
+      on search indexing per last session's notes — but the CID/ftid
+      (`0x0:0xdaa5ffea5568cd9c`) resolving publicly makes that unlikely.
+
+---
+
 ## 2026-06-29 → 2026-07-01 — Real Google reviews end-to-end
 
 **Starting point:** the site had fabricated testimonials (invented customer
