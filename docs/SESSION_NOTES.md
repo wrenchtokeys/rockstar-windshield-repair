@@ -54,6 +54,20 @@ flow and the review URL. Pushed to both remotes (GitHub `origin` and
 CodeCommit `codecommit-origin`; the latter needs the
 `aws codecommit credential-helper` to push).
 
+**Also: README overhauled for the queue system.** Drake forgot the
+`/queue` password — there is no in-app reset by design (single shared
+password in the `QUEUE_PASSWORD` EB env var, compared server-side against
+the `x-queue-auth` header; never stored in the browser). Recovery is a
+read-only `describe-configuration-settings` query (the AI session can't
+run it — the permission classifier blocks printing prod secrets — so
+Drake runs it himself; exact command now in the README). Changing it
+requires the full app-version deploy recipe (env vars + `--version-label`
+in one `update-environment` call, per the 2026-07-01 incident). README
+now documents: the `/queue` page + review-SMS workflow, all env vars
+(queue, DynamoDB, Google reviews), password recovery + rotation recipes,
+the `git archive` deploy method, and the two git remotes with the
+CodeCommit credential-helper quirk. Docs-only change — no deploy needed.
+
 ### What was done
 
 1. **Recovered the Place ID without the API**: decoded the g.page review
