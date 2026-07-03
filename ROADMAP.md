@@ -52,39 +52,27 @@ These require info only the business owner has:
       NEXT_PUBLIC_GOOGLE_REVIEW_URL=https://g.page/r/CZzNaFXq_6XaEBl/review
       NEXT_PUBLIC_GOOGLE_PROFILE_URL=https://share.google/8riILqqwuhuN7cyrQ
       ```
-      Still need to be added to the production environment (AWS Elastic
-      Beanstalk `rswr-production`) — once set, the review buttons and
-      `sameAs` schema activate.
-- [ ] **Set up Places API access for live reviews** — nearly done. Steps
-      1–3 are done (GCP project `rockstar-windshield-repair`, billing
-      linked, both **Places API (New)** and legacy **Places API** enabled,
-      API key created and restricted to Places API (New) only). Step 4, the
-      Place ID, was **recovered on 2026-07-03** by decoding the g.page
-      review-link token to the listing's CID (`15755280253345910172`) and
-      extracting the ID from the Google Maps preview payload for that CID
-      (search-based lookups still return nothing — the listing isn't in the
-      Places search index yet, but direct Place Details lookup by ID is a
-      separate path):
+      Live in production since 2026-07-01 — review buttons and `sameAs`
+      schema are active.
+- [x] **Set up Places API access for live reviews** — ✅ **DONE, live in
+      production since 2026-07-03** (version `live-reviews-260703`,
+      commit `27cc834`). GCP project `rockstar-windshield-repair`, Places
+      API (New) enabled, restricted API key. The Place ID —
       ```
       GOOGLE_PLACE_ID=ChIJgQui0ml6RmERnM1oVer_pdo
       ```
-      Verified against the listing keylessly (Google's
-      `search.google.com/local/reviews?placeid=…` endpoint resolves it to
-      Rockstar Windshield Repair with the matching CID). Remaining steps:
-      confirm Place Details returns review data with the real API key —
-      ```
-      curl -s "https://places.googleapis.com/v1/places/ChIJgQui0ml6RmERnM1oVer_pdo" \
-        -H "X-Goog-Api-Key: YOUR_KEY" \
-        -H "X-Goog-FieldMask: rating,userRatingCount,reviews"
-      ```
-      — then set both vars in the production environment (**via a full
-      app-version deploy, never a bare config-only `update-environment` —
-      see the 2026-07-01 incident in docs/SESSION_NOTES.md**) and reviews
-      go live automatically:
-      ```
-      GOOGLE_PLACES_API_KEY=...   (GCP Console → APIs & Services → Credentials)
-      GOOGLE_PLACE_ID=ChIJgQui0ml6RmERnM1oVer_pdo
-      ```
+      — was recovered on 2026-07-03 by decoding the g.page review-link
+      token to the listing's CID (`15755280253345910172`) and extracting
+      the ID from the Google Maps preview payload (details in
+      docs/SESSION_NOTES.md). Both `GOOGLE_PLACES_API_KEY` and
+      `GOOGLE_PLACE_ID` are set on `rswr-production`. Reviews, the rating
+      summary, and JSON-LD `aggregateRating` all update automatically
+      (24h ISR cache) — no deploys needed for new reviews.
+      Note: the listing still isn't in the Places *search* index (Text
+      Search/Autocomplete return nothing); doesn't matter for us since we
+      fetch by Place ID directly. **Reminder:** any future env-var change
+      must go through a full app-version deploy — see the 2026-07-01
+      incident in docs/SESSION_NOTES.md.
 - [ ] **Finish the Google Business Profile** as a *service-area business*
       (hide street address; add service-area cities: Little Rock, North Little
       Rock, Conway, Benton, Bryant, Jacksonville, Cabot, Sherwood, Maumelle,

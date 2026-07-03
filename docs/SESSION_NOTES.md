@@ -8,12 +8,18 @@ top. Read this before starting new work — it has context that isn't in
 
 ---
 
-## 2026-07-03 — Place ID recovered; review surfaces upgraded
+## 2026-07-03 — Place ID recovered; live reviews DEPLOYED and verified
 
 **Starting point:** live-review plumbing shipped last session but inert —
 the Place ID couldn't be found via any Places API search, so
 `GOOGLE_PLACE_ID`/`GOOGLE_PLACES_API_KEY` were never set in production and
-`/reviews` still shows the "be one of our first reviews" empty state.
+`/reviews` still showed the "be one of our first reviews" empty state.
+
+**End state: live Google reviews are in production and verified.**
+`rockstarwindshield.repair/reviews` shows the 5.0 summary card and D C's
+full review; home page shows the rating badge; JSON-LD emits the real
+`aggregateRating` (5.0, 2 reviews). Environment `rswr-production` is
+Ready/Green on version `live-reviews-260703` (commit `27cc834`).
 
 ### What was done
 
@@ -26,7 +32,7 @@ the Place ID couldn't be found via any Places API search, so
    Windshield Repair with the matching ludocid. Search indexing is still
    missing (that part of last session's finding stands), but Place
    *Details* lookup by ID is a different path and should work.
-2. **Upgraded review surfaces** (uncommitted at time of writing):
+2. **Upgraded review surfaces** (commit `27cc834`):
    - `/reviews`: live rating-summary card (big 5.0 + stars + "Based on N
      Google reviews" + profile link) — this also surfaces star-only
      ratings that can't render as text cards; "Read all of our reviews on
@@ -39,22 +45,30 @@ the Place ID couldn't be found via any Places API search, so
      (dev server, curl assertions on `/`, `/reviews`, and the JSON-LD
      `aggregateRating`), then reverted the mock. `npm run build` clean.
 3. **Updated ROADMAP.md** with the recovered Place ID and remaining steps.
+4. **Verified Place Details with the real API key** — returns rating 5.0,
+   userRatingCount 2, and both reviews (D C full-text, Madison Burrow
+   star-only). Also verified end-to-end locally with real credentials
+   before deploying.
+5. **Deployed to production** (Drake ran the commands): `git archive` of
+   commit `27cc834` → S3 → application version `live-reviews-260703` →
+   `update-environment` with **both** `--version-label` and the two env
+   vars (`GOOGLE_PLACES_API_KEY`, `GOOGLE_PLACE_ID`) in one call, forcing
+   the full app-deploy path so the predeploy build hook ran. No downtime.
+   Verified live afterward: summary card + D C's review on `/reviews`,
+   rating badge on home, real `aggregateRating` in JSON-LD.
 
 ### What's still open
 
-- [ ] **Verify Place Details with the real API key** (curl in ROADMAP.md).
-      The key isn't stored in this repo or this machine — pull from GCP
-      Console → APIs & Services → Credentials (project
-      `rockstar-windshield-repair`).
-- [ ] **Deploy**: commit the review-surface changes, then set
-      `GOOGLE_PLACES_API_KEY` + `GOOGLE_PLACE_ID=ChIJgQui0ml6RmERnM1oVer_pdo`
-      in `rswr-production` **via a full app-version deploy** (config-only
-      env changes skip the predeploy build hook and take the site down —
-      see the 2026-07-01 incident below).
 - [ ] **Predeploy-hook fragility still unfixed** (see 2026-07-01 entry).
-- [ ] If Place Details by ID unexpectedly also 404s, fall back to waiting
-      on search indexing per last session's notes — but the CID/ftid
-      (`0x0:0xdaa5ffea5568cd9c`) resolving publicly makes that unlikely.
+      Deploys that follow the full-app-version recipe are safe, but any
+      config-only env change (CLI *or* EB console) still breaks the site.
+      Highest-value remaining infra item.
+- [ ] **Places search indexing still lagging** — harmless now (we look up
+      by Place ID directly, which works), but worth knowing: the listing
+      still doesn't appear in Text Search/Autocomplete. More GBP activity
+      (photos, posts, reviews) may speed it up.
+- Reviews cache for 24h (ISR on the Places fetch), so a new Google review
+  appears on the site within a day, no deploy needed.
 
 ---
 
