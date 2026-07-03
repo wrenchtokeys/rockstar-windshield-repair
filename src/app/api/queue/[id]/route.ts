@@ -48,6 +48,16 @@ export async function PATCH(
       values[":notes"] = body.notes;
     }
 
+    if (body.markReviewRequested === true) {
+      updates.push("reviewRequestedAt = :reviewRequestedAt");
+      values[":reviewRequestedAt"] = new Date().toISOString();
+    }
+
+    if (body.markReviewFollowup === true) {
+      updates.push("reviewFollowupAt = :reviewFollowupAt");
+      values[":reviewFollowupAt"] = new Date().toISOString();
+    }
+
     if (updates.length === 0) {
       return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
     }

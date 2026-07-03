@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import type { Submission, SubmissionStatus } from "@/types/submission";
+import { BUSINESS } from "@/lib/constants";
 
 const STATUS_CONFIG: Record<
   SubmissionStatus,
@@ -18,6 +19,26 @@ const STATUS_CONFIG: Record<
 const STATUS_ORDER: SubmissionStatus[] = [
   "new", "contacted", "quoted", "scheduled", "won", "lost",
 ];
+
+// Review-request texts open in the owner's own Messages app prefilled
+// (sms: deep link) rather than sending through an SMS API — a text from
+// the number the customer already knows converts far better than one from
+// an unregistered toll-free number, and it needs no carrier registration.
+const REVIEW_URL = BUSINESS.googleReviewUrl;
+
+function reviewSmsHref(sub: Submission, followup: boolean): string {
+  const first = sub.name.trim().split(/\s+/)[0];
+  const body = followup
+    ? `No pressure at all${first ? `, ${first}` : ""} — but if you get a minute, that review link is still live: ${REVIEW_URL} Either way, thanks again! — Drake, Rockstar Windshield Repair`
+    : `Thanks for choosing Rockstar Windshield Repair${first ? `, ${first}` : ""}! If you have a minute, a quick Google review helps a one-man shop more than you know: ${REVIEW_URL} — Drake`;
+  // "?&body=" is the one separator both iOS and Android accept.
+  const digits = sub.phone.replace(/[^+\d]/g, "");
+  return `sms:${digits}?&body=${encodeURIComponent(body)}`;
+}
+
+function olderThan24h(dateStr: string): boolean {
+  return Date.now() - new Date(dateStr).getTime() > 24 * 60 * 60 * 1000;
+}
 
 function timeAgo(dateStr: string): string {
   const now = Date.now();
@@ -88,12 +109,30 @@ export default function QueuePage() {
     }
   };
 
-  const updateStatus = async (id: string, status: SubmissionStatus) => {
+  const markReviewAsked = async (id: string, followup: boolean) => {
     await fetch(`/api/queue/${id}`, {
+      method: "PATCH",
+      headers: { ...authHeader(), "Content-Type": "application/json" },
+      body: JSON.stringify(
+        followup ? { markReviewFollowup: true } : { markReviewRequested: true }
+      ),
+    });
+    fetchSubmissions();
+  };
+
+  const updateStatus = async (sub: Submission, status: SubmissionStatus) => {
+    await fetch(`/api/queue/${sub.id}`, {
       method: "PATCH",
       headers: { ...authHeader(), "Content-Type": "application/json" },
       body: JSON.stringify({ status }),
     });
+    // Marking a job Won opens Messages prefilled with the review request —
+    // one tap to send while the customer is still happy.
+    if (status === "won" && !sub.reviewRequestedAt && sub.phone && REVIEW_URL) {
+      await markReviewAsked(sub.id, false);
+      window.location.href = reviewSmsHref(sub, false);
+      return;
+    }
     fetchSubmissions();
   };
 
@@ -224,7 +263,7 @@ export default function QueuePage() {
                 <select
                   value={sub.status}
                   onChange={(e) =>
-                    updateStatus(sub.id, e.target.value as SubmissionStatus)
+                    updateStatus(sub, e.target.value as SubmissionStatus)
                   }
                   className={`rounded-md border bg-transparent px-2 py-1 text-xs font-bold ${STATUS_CONFIG[sub.status]?.color || "text-zinc-400"} ${STATUS_CONFIG[sub.status]?.bg || "border-zinc-700"}`}
                 >
@@ -273,6 +312,32 @@ export default function QueuePage() {
                   >
                     Email
                   </a>
+                )}
+
+                {/* Review-request flow for completed jobs */}
+                {sub.status === "won" && sub.phone && REVIEW_URL && (
+                  !sub.reviewRequestedAt ? (
+                    <a
+                      href={reviewSmsHref(sub, false)}
+                      onClick={() => markReviewAsked(sub.id, false)}
+                      className="rounded-md bg-green-600 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-white hover:bg-green-500"
+                    >
+                      ★ Ask for Review
+                    </a>
+                  ) : !sub.reviewFollowupAt && olderThan24h(sub.reviewRequestedAt) ? (
+                    <a
+                      href={reviewSmsHref(sub, true)}
+                      onClick={() => markReviewAsked(sub.id, true)}
+                      className="rounded-md border border-green-600 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-green-500 hover:bg-green-600 hover:text-white"
+                    >
+                      ★ Send Reminder
+                    </a>
+                  ) : (
+                    <span className="text-xs text-zinc-500">
+                      ★ review asked {timeAgo(sub.reviewRequestedAt)}
+                      {sub.reviewFollowupAt && " · reminded"}
+                    </span>
+                  )
                 )}
 
                 <div className="flex-1" />

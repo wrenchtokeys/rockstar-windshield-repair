@@ -35,6 +35,21 @@ windshield isn't." (commit `93616e1`). Deployed as version
 commands) — Ready/Green, verified live: home 200, unknown URL returns 404
 with the new copy.
 
+**Also: review-request SMS automation in `/queue`.** Marking a lead
+**Won** now auto-opens Messages prefilled with the customer's number and
+a personalized review request (first name + review link) — one tap to
+send. Won cards get an ★ Ask for Review button, a ★ Send Reminder button
+after 24h with no follow-up, and an "asked Xh ago" chip. Tracked via new
+`reviewRequestedAt`/`reviewFollowupAt` fields (PATCH route accepts
+`markReviewRequested`/`markReviewFollowup`; server-side timestamps —
+existing DynamoDB items just lack the attrs, no migration needed).
+Chose `sms:` deep links from Drake's own phone over an SMS API on
+purpose: no A2P/10DLC carrier registration, no cost, and texts from a
+known number convert better. Phone numbers are sanitized to digits for
+the `sms:` URI. Note: the older bare "Text" button still uses the raw
+phone string — harmless for 10-digit input but inconsistent; candidate
+cleanup.
+
 ### What was done
 
 1. **Recovered the Place ID without the API**: decoded the g.page review

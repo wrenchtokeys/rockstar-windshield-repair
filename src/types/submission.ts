@@ -14,4 +14,8 @@ export interface Submission {
   submittedAt: string;
   contactedAt?: string;
   updatedAt?: string;
+  // Review-request tracking: set when the review-request SMS is opened for
+  // this customer, and when the one follow-up reminder is sent.
+  reviewRequestedAt?: string;
+  reviewFollowupAt?: string;
 }

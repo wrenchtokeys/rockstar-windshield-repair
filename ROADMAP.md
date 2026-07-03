@@ -173,8 +173,10 @@ Review link (opens the rating dialog directly):
 
 ### Website/system tie-ins (already tracked elsewhere in this doc)
 
-- Automated review-request SMS when a job is marked complete — see
-  Longer-term ideas; the `/queue` system is the natural trigger point.
+- ✅ Automated review-request SMS when a job is marked complete — shipped;
+  see Longer-term ideas for details. Mark the lead **Won** in `/queue`
+  and the prefilled text opens automatically; the 24h reminder button
+  appears on the card the next day.
 - New reviews appear on the site automatically within ~24h (ISR cache) —
   every review earned immediately markets on rockstarwindshield.repair
   and in the JSON-LD star data, not just on Google.
@@ -202,7 +204,19 @@ Review link (opens the rating dialog directly):
 - [ ] **Instant quote tool** — upload a photo of the damage for a rough estimate.
 - [ ] **Insurance claim intake flow** that captures policy info up front.
 - [ ] **Fleet/commercial portal** for recurring B2B customers.
-- [ ] **Automated review-request SMS** triggered when a job is marked complete.
+- [x] **Automated review-request SMS** triggered when a job is marked
+      complete — ✅ done 2026-07-03. Marking a lead **Won** in `/queue`
+      auto-opens Messages prefilled with the customer's number and a
+      personalized review request (first name + review link); one tap to
+      send. Won cards also get an **★ Ask for Review** button, a
+      **★ Send Reminder** button that appears once 24h pass with no
+      follow-up, and an "asked Xh ago" chip (tracked via
+      `reviewRequestedAt`/`reviewFollowupAt` in DynamoDB). Deliberately
+      uses `sms:` deep links from Drake's own phone rather than an SMS
+      API: no A2P/10DLC carrier registration, no per-message cost, and
+      texts from the number the customer already knows convert better
+      than an unknown toll-free number. If volume ever justifies true
+      no-touch sending, revisit with Twilio/SNS + toll-free verification.
 - [ ] **Blog / education content** ("repair vs. replace", "is my chip fixable?")
       for top-of-funnel local search traffic.
 
