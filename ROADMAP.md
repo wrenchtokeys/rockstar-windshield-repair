@@ -124,8 +124,12 @@ Review link (opens the rating dialog directly):
 - [ ] **QR-code leave-behind card** — business card / thank-you card with
       a QR pointing at the review link, left on the dash after every job.
       Catches the customers who weren't there during the repair (workplace
-      and driveway jobs). The QR code can be generated from the review
-      link and added to `public/` in this repo for print-ready use.
+      and driveway jobs). **The QR code is in the repo** (generated
+      2026-07-03, error-correction level H for print durability, decode-
+      verified): `public/review-qr.svg` (vector — use this for print) and
+      `public/review-qr.png` (1024px). After the next deploy they're also
+      served at `rockstarwindshield.repair/review-qr.png` for handing
+      straight to a print shop.
 - [ ] **QR sticker on the van/window cling** — "Happy with your repair?
       Scan to review." Works passively at every job site.
 - [ ] **Invoice/receipt footer** — if receipts are emailed or printed, add
