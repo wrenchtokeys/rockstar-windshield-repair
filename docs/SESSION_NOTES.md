@@ -8,6 +8,55 @@ top. Read this before starting new work — it has context that isn't in
 
 ---
 
+## 2026-07-11 — Migrated EB → AWS Amplify; SendGrid → SES
+
+**Why:** cost. On Elastic Beanstalk this marketing site ran a full-time
+t3.small + its own ALB + public IPs (~$30/mo) — overkill for a Next.js site.
+Moved to Amplify Hosting (~$2–5/mo). Full deploy reference now in
+[`DEPLOYMENT.md`](DEPLOYMENT.md).
+
+**End state: live on Amplify, verified.** `rockstarwindshield.repair` (apex +
+`www`) serves the Amplify app over HTTPS (ACM wildcard cert). Contact form
+(DynamoDB + S3 + email), `/queue`, and all routes verified on the live domain.
+EB env `rswr-production` terminated (ALB + t3.small gone).
+
+### What shipped
+- **Amplify app** `d12me65ddm59c9` (`WEB_COMPUTE`), auto-deploys from GitHub
+  `main`. AWS access via compute role `rockstar-amplify-compute-role` (scoped to
+  the contact table, backup bucket, and SES domain) — **no static keys**.
+- **SendGrid → SES.** `src/app/contact/actions.ts` now uses
+  `@aws-sdk/client-sesv2`. SES domain DKIM-verified; branded email templates
+  unchanged. SendGrid dependency removed.
+- **DNS cutover** to CloudFront `d12tb39mmpio0g.cloudfront.net`; dead SendGrid
+  DNS records (`s1`/`s2._domainkey`, `em3661`) removed.
+
+### 🔥 Two Amplify gotchas that cost most of the session (both fixed)
+1. **Static pages break Server Actions.** `/contact` was statically prerendered,
+   so CloudFront served the cached page for the form's POST — the action never
+   ran (form said "success", nothing saved, no email; logs showed `Connection
+   closed` / `x-nextjs-cache: HIT` on a POST). Fix: `export const dynamic =
+   "force-dynamic"` in `src/app/contact/page.tsx`.
+2. **Amplify doesn't pass console env vars to the SSR runtime** (build-time
+   only). `process.env.*` was `undefined` at request time → S3 backup skipped,
+   `/api/queue` 401 (`QUEUE_PASSWORD` undefined), reviews couldn't fetch. Fix:
+   inline server-only vars at build in `next.config.ts` (`env` block; verified
+   server-bundle-only, no client leak).
+
+### What's still open
+- Delete the stray `SENDGRID_FROM_EMAIL` env var in the Amplify console (dead;
+  code uses `CONTACT_FROM_EMAIL`).
+- Cancel the SendGrid account (nothing uses it now).
+- README still says "Next.js 15" (actually 16.1.6) — cosmetic.
+
+### Mistakes / lessons (for future reference)
+- Don't set `AWS_*` env vars in Amplify — they're rejected; region comes from
+  the runtime and creds from the compute role.
+- Adding env vars in the console alone is not enough on Amplify SSR — server
+  vars must also be in `next.config.ts` `SERVER_ENV_KEYS` to reach runtime.
+- A compute-role change needs a **redeploy** (`start-job RELEASE`) to take effect.
+
+---
+
 ## 2026-07-03 — Place ID recovered; live reviews DEPLOYED and verified
 
 **Starting point:** live-review plumbing shipped last session but inert —

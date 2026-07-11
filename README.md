@@ -8,7 +8,8 @@ Business website for **Rockstar Windshield Repair**, a mobile windshield repair 
 > [`docs/SESSION_NOTES.md`](docs/SESSION_NOTES.md) first — it's a dated log
 > of what shipped, what broke, and what's still open across sessions, with
 > context that isn't in `ROADMAP.md` or git history alone. Check
-> `ROADMAP.md` for the forward-looking backlog.
+> `ROADMAP.md` for the forward-looking backlog. Deploying or operating the
+> site? See [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) (Amplify + SES).
 
 ---
 
