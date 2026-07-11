@@ -5,6 +5,12 @@ import ContactForm from "@/components/contact/ContactForm";
 import ContactInfo from "@/components/contact/ContactInfo";
 import MapEmbed from "@/components/contact/MapEmbed";
 
+// Force dynamic rendering so this route is never served from the CDN cache.
+// The contact form uses a Server Action (POST /contact); if the page is
+// statically prerendered, CloudFront serves the cached page for the POST and
+// the action never reaches the compute ("Connection closed" / action not run).
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = createMetadata(
   "Contact Us",
   "Get a free windshield repair quote in Little Rock, AR. Fill out our contact form or call us for same-day service.",
