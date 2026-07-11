@@ -1,6 +1,6 @@
 "use server";
 
-import sgMail from "@sendgrid/mail";
+import { SESv2Client, SendEmailCommand } from "@aws-sdk/client-sesv2";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import { docClient, TABLE_NAME } from "@/lib/dynamodb";
@@ -150,6 +150,36 @@ function buildBrandedEmail({
 </html>`;
 }
 
+// SES client — credentials come from the Amplify compute role (no static keys),
+// region is supplied by the runtime. Sends from the DKIM-verified rockstar domain.
+const sesClient = new SESv2Client({ region: process.env.AWS_REGION || "us-east-1" });
+const FROM_EMAIL =
+  process.env.CONTACT_FROM_EMAIL || "notifications@rockstarwindshield.repair";
+
+async function sendEmail(opts: {
+  to: string;
+  fromName: string;
+  subject: string;
+  text: string;
+  html: string;
+}) {
+  await sesClient.send(
+    new SendEmailCommand({
+      FromEmailAddress: `${opts.fromName} <${FROM_EMAIL}>`,
+      Destination: { ToAddresses: [opts.to] },
+      Content: {
+        Simple: {
+          Subject: { Data: opts.subject },
+          Body: {
+            Text: { Data: opts.text },
+            Html: { Data: opts.html },
+          },
+        },
+      },
+    })
+  );
+}
+
 export async function submitContactForm(
   _prevState: FormState,
   formData: FormData
@@ -185,23 +215,10 @@ export async function submitContactForm(
   // Save to both DynamoDB (queue) and S3 (backup)
   await Promise.all([saveToDynamoDB(submission), saveToS3(submission)]);
 
-  // Send emails via SendGrid
-  const apiKey = process.env.SENDGRID_API_KEY;
-  if (!apiKey) {
-    console.error("SENDGRID_API_KEY is not set");
-    return {
-      success: true,
-      message: "Thank you! We've received your request and will get back to you as soon as possible.",
-    };
-  }
-
-  sgMail.setApiKey(apiKey);
-  const fromEmail = process.env.SENDGRID_FROM_EMAIL || "notifications@rockstarwindshield.repair";
-
-  // 1. Send notification to Drake
+  // 1. Send notification to Drake (via SES)
   try {
-    await sgMail.send({
-      from: { email: fromEmail, name: BUSINESS.name + " Website" },
+    await sendEmail({
+      fromName: BUSINESS.name + " Website",
       to: BUSINESS.email,
       subject: `New Quote Request — ${name} (${serviceType || "General"})`,
       text: `New quote request from ${name}\nPhone: ${phone}\nEmail: ${email || "N/A"}\nService: ${serviceType || "N/A"}\nVehicle: ${vehicleInfo || "N/A"}\nDamage: ${damageDescription || "N/A"}\nPreferred Contact: ${preferredContact || "Phone"}`,
@@ -235,8 +252,8 @@ export async function submitContactForm(
       if (vehicleInfo) detailRows.push({ label: "Vehicle", value: vehicleInfo });
       if (damageDescription) detailRows.push({ label: "Details", value: damageDescription.length > 80 ? damageDescription.slice(0, 80) + "..." : damageDescription });
 
-      await sgMail.send({
-        from: { email: fromEmail, name: BUSINESS.name },
+      await sendEmail({
+        fromName: BUSINESS.name,
         to: email,
         subject: `We got your request, ${name}! — ${BUSINESS.name}`,
         text: `Hi ${name},\n\nThanks for reaching out to ${BUSINESS.name}! We received your windshield repair request and will get back to you as soon as possible.\n\nIf you need immediate assistance, give us a call at ${BUSINESS.phone}.\n\n— ${BUSINESS.name}`,
