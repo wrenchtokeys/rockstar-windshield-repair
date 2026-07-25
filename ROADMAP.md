@@ -177,6 +177,12 @@ Review link (opens the rating dialog directly):
   see Longer-term ideas for details. Mark the lead **Won** in `/queue`
   and the prefilled text opens automatically; the 24h reminder button
   appears on the card the next day.
+- ✅ **Every job can reach the automation, not just web leads** — shipped
+  2026-07-24. `+ Add Lead` in `/queue` takes a name and phone for jobs
+  that came from a phone call, a referral, or a walk-up. Adding one
+  directly as **Won** fires the review text on the spot. Before this,
+  the review automation only ever saw contact-form customers — probably
+  the minority of actual jobs.
 - New reviews appear on the site automatically within ~24h (ISR cache) —
   every review earned immediately markets on rockstarwindshield.repair
   and in the JSON-LD star data, not just on Google.

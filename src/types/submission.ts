@@ -18,4 +18,7 @@ export interface Submission {
   // this customer, and when the one follow-up reminder is sent.
   reviewRequestedAt?: string;
   reviewFollowupAt?: string;
+  // How the lead arrived. Absent on records created before this field
+  // existed — treat missing as "web".
+  source?: "web" | "manual";
 }

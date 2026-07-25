@@ -32,7 +32,21 @@ back. For the dated migration story see `SESSION_NOTES.md` (2026-07-11 entry).
 The SSR runtime gets AWS access from an **Amplify compute role**, not access keys:
 - Role: `rockstar-amplify-compute-role` (trusted principal `amplify.amazonaws.com`)
 - Set on the app **and** the `main` branch (`aws amplify update-app/update-branch --compute-role-arn ...`)
-- Least-privilege policy: `dynamodb:{PutItem,GetItem,Query,Scan}` on the contact table, `s3:{PutObject,GetObject}` on the backup bucket, `ses:SendEmail` on the domain identity.
+- Least-privilege policy `rockstar-contact-access`:
+  - `dynamodb:{PutItem,GetItem,Query,Scan,UpdateItem,DeleteItem}` on the contact **table**
+  - `dynamodb:{Query,Scan}` on the **index** ARN
+    `.../table/rockstar-contact-submissions/index/status-submitted-index`
+  - `s3:{PutObject,GetObject}` on the backup bucket, `ses:SendEmail` on the domain identity
+
+> **A table-ARN grant does not cover its indexes.** DynamoDB treats a GSI as a
+> separate resource, so `/queue`'s status filter chips (which Query the GSI)
+> 403 unless the index ARN is granted explicitly. Likewise `UpdateItem` and
+> `DeleteItem` are what the PATCH/DELETE routes need — reads working proves
+> nothing about writes. Verify with `aws iam simulate-principal-policy` rather
+> than by eye; see the 2026-07-24 entry in `SESSION_NOTES.md`.
+
+IAM policy edits take effect within seconds and need **no redeploy** — unlike
+swapping which role is attached, which does.
 
 `AWS_REGION` is provided by the Lambda runtime (do **not** set it — Amplify rejects any env var starting with `AWS`).
 

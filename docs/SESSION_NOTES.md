@@ -8,6 +8,87 @@ top. Read this before starting new work — it has context that isn't in
 
 ---
 
+## 2026-07-24 — `+ Add Lead`: manual leads in `/queue`
+
+**Why:** the review-request SMS automation (shipped 2026-07-03) only ever
+fired for customers who filled out the contact form. `/api/queue` had a
+`GET` but no `POST`, so a phone-call or walk-up job could not be entered
+at all — and for a mobile repair business those are likely most of the
+work. The automation was real but reaching a fraction of jobs.
+
+### What shipped
+
+- **`POST /api/queue`** — same `x-queue-auth` password as the rest of the
+  queue API. Requires a name and a phone with ≥10 digits (the review SMS
+  is the point of a manual lead and needs a real number to deep-link);
+  optional vehicle/notes/email/serviceType; status defaults to `new` and
+  falls back to `new` if an unknown value is posted. Anything past `new`
+  stamps `contactedAt` — the conversation already happened offline.
+  All string fields trimmed and length-capped.
+- **`source` field** on `Submission` (`"web" | "manual"`). Optional —
+  records written before today simply lack it, so treat missing as
+  `"web"`; no migration. The contact form now tags its own leads `"web"`.
+  Manual leads show "· added manually" on the card.
+- **`+ Add Lead` form** in the `/queue` header. Adding a lead as **Won**
+  runs the same path as flipping the dropdown to Won: marks
+  `reviewRequestedAt`, then opens Messages prefilled. A green hint says
+  so before you submit. If an active status filter would hide the lead
+  that was just added, the filter resets to All.
+- **Fixed the raw-phone inconsistency** flagged in the 2026-07-03 entry:
+  the plain Call/Text buttons used `sub.phone` verbatim while the review
+  buttons sanitized. Both now go through one `phoneDigits()` helper, so
+  `(555) 867-5309` yields `tel:5558675309` and still *displays* formatted.
+
+### 🔥 Found while testing: `/queue` writes have been broken in production all along
+
+Drake reported the action buttons not working. **All 7 production leads were
+still `status: "new"`** — no status change had ever persisted, going back to
+April. Root cause was IAM, not code: `rockstar-amplify-compute-role`'s policy
+granted only `PutItem, GetItem, Query, Scan` on the leads table.
+
+Three gaps, confirmed with `aws iam simulate-principal-policy`:
+
+| Missing | Broke |
+| --- | --- |
+| `UpdateItem` on the table | every status change, notes, review tracking |
+| `DeleteItem` on the table | the Delete button |
+| `Query` on the **index** ARN | every filter chip except All |
+
+The index one is the subtle one: **granting a DynamoDB table ARN does not
+grant its GSIs** — an index is a separate resource. The policy named the
+table only, so the `status-submitted-index` Query behind the filter chips
+was denied while an unfiltered Scan worked fine.
+
+This survived months because reads worked (leads displayed, contact form
+saved) and **the client never checked `res.ok`** — a failed PATCH just let
+the card snap back with no error. Fixed both halves:
+
+- Policy corrected (`UpdateItem`/`DeleteItem` on the table, `Query`/`Scan` on
+  the index ARN; S3 + SES statements unchanged). Applied 2026-07-24, verified
+  by simulation. No redeploy needed for an IAM policy edit.
+- Every write in `queue/page.tsx` now goes through a `patchLead()` helper that
+  surfaces failures in a dismissible red banner naming the missing permission.
+  A failed load does the same.
+
+**Lesson: reads working proves nothing about writes.** When something in
+`/queue` misbehaves, check the compute role before the code.
+
+### Testing note
+
+Tested against a throwaway DynamoDB table (`rswr-queue-testscratch`,
+same key schema + `status-submitted-index` GSI) rather than the
+production table — dev server run with `DYNAMODB_TABLE` pointed at it.
+Verified 401s, both 400 validation paths, 201 creation, the GSI query
+path, `markReviewRequested` on a manual lead, and the generated `sms:`
+href. Scratch table deleted afterward; production table untouched.
+**Do this again** rather than writing test leads into real data.
+
+One thing not exercised end-to-end: actually *navigating* to the `sms:`
+URI from automated Chrome — it pops an external-protocol dialog that
+freezes the extension. The href itself was verified by reading it.
+
+---
+
 ## 2026-07-11 — Migrated EB → AWS Amplify; SendGrid → SES
 
 **Why:** cost. On Elastic Beanstalk this marketing site ran a full-time

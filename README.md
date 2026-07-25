@@ -54,7 +54,7 @@ src/
 │   │   └── actions.ts          # Server action → Resend email + DynamoDB lead
 │   ├── queue/page.tsx          # Lead dashboard (client, password login)
 │   ├── api/queue/
-│   │   ├── route.ts            # GET leads (auth: x-queue-auth header)
+│   │   ├── route.ts            # GET leads, POST manual lead (auth: x-queue-auth)
 │   │   └── [id]/route.ts       # PATCH status/notes/review-tracking, DELETE
 │   ├── service-area/page.tsx
 │   ├── not-found.tsx
@@ -159,7 +159,9 @@ npm run start
 
 Every contact-form submission is emailed (Resend) **and** saved as a lead
 in DynamoDB (`rockstar-contact-submissions`, us-east-1). The `/queue` page
-is a private dashboard for working those leads from a phone.
+is a private dashboard for working those leads from a phone. Jobs that
+never touch the contact form — phone calls, referrals, walk-ups — can be
+typed in with **+ Add Lead** so they land in the same pipeline.
 
 ### Using it
 
@@ -172,7 +174,14 @@ is a private dashboard for working those leads from a phone.
    `contactedAt` time automatically.
 4. Cards have **Call** / **Text** buttons (tel:/sms: links) and a free-form
    **Notes** field per lead.
-5. **Review-request automation:** marking a lead **Won** auto-opens
+5. **+ Add Lead** (header) opens a short form — name and phone required,
+   vehicle/notes optional, plus a starting status. Use it for any job that
+   didn't come through the website. Manual leads are tagged "added
+   manually" on the card (`source: "manual"`) and behave exactly like web
+   leads from there on, including the review automation below. Adding one
+   straight in as **Won** — the parking-lot case, repair done and the
+   customer standing right there — opens the review text immediately.
+6. **Review-request automation:** marking a lead **Won** auto-opens
    Messages prefilled with that customer's number and a personalized
    Google-review request — one tap to send, from your own phone number.
    Won cards then show:

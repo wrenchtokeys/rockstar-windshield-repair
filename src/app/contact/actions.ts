@@ -24,6 +24,7 @@ async function saveToDynamoDB(submission: Record<string, string>) {
       status: "new",
       notes: "",
       submittedAt: new Date().toISOString(),
+      source: "web",
     };
 
     await docClient.send(
