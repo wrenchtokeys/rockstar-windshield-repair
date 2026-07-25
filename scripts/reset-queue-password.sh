@@ -2,34 +2,32 @@
 #
 # Rotate the /queue dashboard password (QUEUE_PASSWORD) in production.
 #
-# This does a full app-version deploy of the CURRENT COMMIT and sets the new
-# password in the SAME `update-environment` call. That combination matters:
-# EB skips the predeploy build hook on config-only updates (env var change
-# with no new app version), which ships unbuilt source and takes the site
-# down. See docs/SESSION_NOTES.md (2026-07-01 incident) for the postmortem.
+# Amplify serves env vars to the build, and next.config.ts inlines the
+# server-only ones into the server bundle (see docs/DEPLOYMENT.md). So
+# changing the value is NOT enough on its own — the app must be rebuilt
+# before the new password takes effect. This script does both and waits.
+#
+# Rewritten 2026-07-25 for Amplify. The previous version drove Elastic
+# Beanstalk, which was terminated in the 2026-07-11 migration; it had been
+# silently broken since, along with the recovery command in the README.
 #
 # Usage:
 #   scripts/reset-queue-password.sh              # generate a random password
-#   scripts/reset-queue-password.sh --prompt      # type your own (hidden input)
+#   scripts/reset-queue-password.sh --prompt     # type your own (hidden input)
 #
 # Deliberately does NOT accept the password as a bare argument — that would
 # leak it into shell history and `ps` output.
+#
+# To just LOOK UP the current password without changing it, see
+# scripts/get-queue-password.sh.
 
 set -euo pipefail
 
-APP_NAME="rockstar-windshield-repair"
-ENV_NAME="rswr-production"
+APP_ID="d12me65ddm59c9"
+BRANCH="main"
 REGION="us-east-1"
-BUCKET="elasticbeanstalk-us-east-1-973196283632"
-S3_KEY="rswr/deploy.zip"
 
-REPO_ROOT="$(git -C "$(dirname "${BASH_SOURCE[0]}")" rev-parse --show-toplevel)"
-cd "$REPO_ROOT"
-
-if [[ -n "$(git status --porcelain)" ]]; then
-  echo "Working tree has uncommitted changes. Commit or stash before deploying (this script deploys HEAD)." >&2
-  exit 1
-fi
+command -v jq >/dev/null || { echo "jq is required (brew install jq)." >&2; exit 1; }
 
 NEW_PASSWORD=""
 if [[ "${1:-}" == "--prompt" ]]; then
@@ -47,7 +45,7 @@ elif [[ -n "${1:-}" ]]; then
   exit 1
 else
   NEW_PASSWORD="$(openssl rand -base64 24 | tr -dc 'A-Za-z0-9' | head -c 20)"
-  echo "Generated new password (shown once below — save it now)."
+  echo "Generated a new password (shown once at the end — save it to your password manager)."
 fi
 
 if [[ -z "$NEW_PASSWORD" ]]; then
@@ -55,61 +53,65 @@ if [[ -z "$NEW_PASSWORD" ]]; then
   exit 1
 fi
 
-VERSION_LABEL="queue-password-$(date +%y%m%d%H%M%S)"
-TMPZIP="$(mktemp -t deploy-XXXXXX.zip)"
-trap 'rm -f "$TMPZIP"' EXIT
+# `update-app --environment-variables` REPLACES the whole map, so the new
+# value has to be merged into the existing one. Setting it bare would wipe
+# DYNAMODB_TABLE, the Places API key, and everything else — a silent
+# production outage. Merge with jq, never hand-write the map.
+echo "Reading current environment variables..."
+CURRENT="$(aws amplify get-app --app-id "$APP_ID" --region "$REGION" \
+  --query 'app.environmentVariables' --output json)"
 
-echo "Packaging commit $(git rev-parse --short HEAD) as $VERSION_LABEL..."
-git archive --format=zip -o "$TMPZIP" HEAD
+COUNT_BEFORE="$(jq 'length' <<<"$CURRENT")"
+if [[ "$COUNT_BEFORE" -lt 2 ]]; then
+  echo "Only $COUNT_BEFORE env var(s) found — that looks wrong, aborting rather than risk wiping config." >&2
+  exit 1
+fi
 
-echo "Uploading to s3://$BUCKET/$S3_KEY..."
-aws s3 cp "$TMPZIP" "s3://$BUCKET/$S3_KEY"
+MERGED="$(jq --arg pw "$NEW_PASSWORD" '. + {QUEUE_PASSWORD: $pw}' <<<"$CURRENT")"
+COUNT_AFTER="$(jq 'length' <<<"$MERGED")"
+if [[ "$COUNT_AFTER" -lt "$COUNT_BEFORE" ]]; then
+  echo "Merge would drop variables ($COUNT_BEFORE -> $COUNT_AFTER), aborting." >&2
+  exit 1
+fi
 
-echo "Creating application version $VERSION_LABEL..."
-aws elasticbeanstalk create-application-version \
-  --application-name "$APP_NAME" \
-  --version-label "$VERSION_LABEL" \
-  --source-bundle "S3Bucket=$BUCKET,S3Key=$S3_KEY" \
-  --region "$REGION" >/dev/null
+echo "Updating QUEUE_PASSWORD (preserving the other $((COUNT_AFTER - 1)) variables)..."
+aws amplify update-app --app-id "$APP_ID" --region "$REGION" \
+  --environment-variables "$MERGED" >/dev/null
 
-echo "Deploying $VERSION_LABEL and setting QUEUE_PASSWORD in one call (full app-version deploy)..."
-aws elasticbeanstalk update-environment \
-  --environment-name "$ENV_NAME" \
-  --version-label "$VERSION_LABEL" \
-  --option-settings "Namespace=aws:elasticbeanstalk:application:environment,OptionName=QUEUE_PASSWORD,Value=$NEW_PASSWORD" \
-  --region "$REGION" >/dev/null
+# The value is only baked in at build time, so a rebuild is mandatory.
+echo "Starting a rebuild so the new password reaches the runtime..."
+JOB_ID="$(aws amplify start-job --app-id "$APP_ID" --branch-name "$BRANCH" \
+  --job-type RELEASE --region "$REGION" --query 'jobSummary.jobId' --output text)"
+echo "  job $JOB_ID"
 
-echo "Waiting for environment to stabilize..."
 STATUS=""
-HEALTH=""
-for i in $(seq 1 30); do
-  STATUS=$(aws elasticbeanstalk describe-environments \
-    --environment-names "$ENV_NAME" --region "$REGION" \
-    --query "Environments[0].Status" --output text)
-  HEALTH=$(aws elasticbeanstalk describe-environments \
-    --environment-names "$ENV_NAME" --region "$REGION" \
-    --query "Environments[0].Health" --output text)
-  echo "  [$i/30] Status=$STATUS Health=$HEALTH"
-  if [[ "$STATUS" == "Ready" ]]; then
-    break
-  fi
-  sleep 10
+for i in $(seq 1 40); do
+  STATUS="$(aws amplify get-job --app-id "$APP_ID" --branch-name "$BRANCH" \
+    --job-id "$JOB_ID" --region "$REGION" --query 'job.summary.status' --output text)"
+  echo "  [$i/40] $STATUS"
+  case "$STATUS" in
+    SUCCEED) break ;;
+    FAILED|CANCELLED)
+      echo "Deploy $STATUS — the password was changed but the running site may still use the old one." >&2
+      echo "Check the Amplify console, then re-run this script or start a job manually." >&2
+      exit 1
+      ;;
+  esac
+  sleep 15
 done
 
-if [[ "$STATUS" != "Ready" || "$HEALTH" != "Green" ]]; then
-  echo "Environment did not reach Ready/Green. Check the EB console before trusting the new password:" >&2
-  echo "  https://console.aws.amazon.com/elasticbeanstalk/home?region=$REGION#/environment/dashboard?applicationName=$APP_NAME&environmentId=$ENV_NAME" >&2
+if [[ "$STATUS" != "SUCCEED" ]]; then
+  echo "Timed out waiting for the deploy. Check the Amplify console for job $JOB_ID." >&2
   exit 1
 fi
 
-HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "https://rockstarwindshield.repair/")
-echo "Site check: HTTP $HTTP_CODE"
-if [[ "$HTTP_CODE" != "200" ]]; then
-  echo "Site did not return 200 after deploy — investigate before relying on this being live." >&2
-  exit 1
-fi
+CODE="$(curl -s -o /dev/null -w '%{http_code}' https://rockstarwindshield.repair/queue)"
+echo "Site check: /queue returned HTTP $CODE"
 
 echo
-echo "Done. Environment is Ready/Green and the site is up."
-echo "New /queue password: $NEW_PASSWORD"
-echo "Save it in your password manager now — it is not displayed or stored anywhere else."
+echo "==================================================================="
+echo "  New /queue password:  $NEW_PASSWORD"
+echo "==================================================================="
+echo "Save it in your password manager NOW — it is not stored anywhere in"
+echo "this repo, and this is the only time the script prints it."
+echo "You can always read it back with: scripts/get-queue-password.sh"

@@ -8,6 +8,46 @@ top. Read this before starting new work — it has context that isn't in
 
 ---
 
+## 2026-07-25 — Password recovery was broken; removed CodeCommit remote
+
+**Why it came up:** Drake asked to write the queue password into the docs
+because he keeps forgetting it. Declined — **this is a public GitHub repo**,
+and a gitignored file is one `git add -f` from permanent exposure. But the
+underlying complaint was real, and the cause was worse than forgetfulness:
+
+**Every documented way to recover the password was broken.** The README's
+"Forgot the password?" command and all of `scripts/reset-queue-password.sh`
+drove Elastic Beanstalk, which was terminated in the 2026-07-11 migration.
+Both had been dead for two weeks. There was no working way to look the
+password up, which is exactly why it kept getting lost.
+
+### Fixed
+
+- **`scripts/get-queue-password.sh`** (new) — reads it from Amplify.
+  `--copy` puts it on the clipboard instead of in terminal scrollback.
+- **`scripts/reset-queue-password.sh`** — rewritten for Amplify. Two traps
+  it now handles: `update-app --environment-variables` **replaces the whole
+  map** (setting one var bare would wipe the other nine — the script merges
+  with `jq` and aborts if the count drops), and Amplify env vars are
+  **build-time only**, so it triggers a rebuild and waits rather than
+  leaving the new password inert.
+- **`scripts/pre-commit-secret-guard.sh` + `install-hooks.sh`** (new) —
+  blocks staging `.env`/key files or adding lines that hardcode a
+  password/API key/token. Prints the variable name, redacts the value.
+  Deliberately does **not** embed the real password (that would just move
+  the secret into another file on disk); it matches on name and shape.
+  Hooks aren't version-controlled, so run `install-hooks.sh` per clone.
+- **README** — corrected the recovery/reset/env-var/deploy sections, which
+  were all still EB. Added the "never written down in this repo" policy.
+- **Removed the `codecommit-origin` remote** (leftover from EB, 5 commits
+  behind, not in the deploy path) and repointed `main`'s upstream at
+  `origin/main` — removing the remote had left the branch with no upstream.
+
+**Note:** `SENDGRID_FROM_EMAIL` is still set in Amplify but unused since the
+SES migration. Harmless, worth deleting on the next env-var pass.
+
+---
+
 ## 2026-07-24 — `+ Add Lead`: manual leads in `/queue`
 
 **Why:** the review-request SMS automation (shipped 2026-07-03) only ever

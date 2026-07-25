@@ -30,8 +30,18 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files — NEVER commit these. This repo is public and QUEUE_PASSWORD,
+# the Places API key, etc. live only in Amplify env vars. See README
+# ("The password is never written down in this repo") and the pre-commit
+# guard installed by scripts/install-hooks.sh.
 .env*
+*.key
+*.p12
+*.pfx
+id_rsa
+secrets.json
+*.secret
+credentials.json
 
 # vercel
 .vercel

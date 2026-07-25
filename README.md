@@ -90,6 +90,12 @@ src/
 └── types/
     ├── index.ts                # ContactFormData, FormState
     └── submission.ts           # Submission, SubmissionStatus (queue leads)
+
+scripts/
+├── get-queue-password.sh          # print/copy the current /queue password
+├── reset-queue-password.sh        # rotate it (Amplify + rebuild)
+├── install-hooks.sh               # install the pre-commit secret guard
+└── pre-commit-secret-guard.sh     # blocks committing secrets (public repo)
 ```
 
 ## Design
@@ -194,29 +200,49 @@ typed in with **+ Add Lead** so they land in the same pipeline.
 ### How the password works
 
 There are no user accounts. Auth is a **single shared password** stored in
-the `QUEUE_PASSWORD` environment variable on the production EB environment.
-The login form sends it in an `x-queue-auth` header; the API routes
-(`src/app/api/queue/*`) compare it server-side. It is never stored in the
-browser — closing the tab logs you out.
+the `QUEUE_PASSWORD` environment variable on the **Amplify app**
+(`d12me65ddm59c9`). The login form sends it in an `x-queue-auth` header;
+the API routes (`src/app/api/queue/*`) compare it server-side. It is never
+stored in the browser — closing the tab logs you out.
 
-Because of that design there is **no in-app "forgot password" flow** — the
-password lives only in the EB environment config, so recovering or changing
-it is an AWS operation:
+> ### 🔒 The password is never written down in this repo
+>
+> **This is a public GitHub repository.** The password lives in exactly one
+> place — Amplify's environment variables — and must never be committed to
+> a file here, not even a gitignored one (one `git add -f` and it is public
+> forever, and git history is not easily erased).
+>
+> That is not a hardship, because you can read it back any time with the
+> command below. Treat Amplify as the source of truth and keep a copy in
+> your password manager; don't put it in the repo, a note file, or a
+> commit message.
+>
+> **Install the pre-commit guard once per clone:**
+>
+> ```bash
+> scripts/install-hooks.sh
+> ```
+>
+> It refuses any commit that stages a `.env`/key file or adds a line that
+> hardcodes a password, API key, or token — printing the variable name and
+> redacting the value. Git hooks aren't version-controlled, so a fresh
+> clone needs this run again. It's a safety net, not a license.
 
-### Forgot the password? (recover it — safe, read-only)
+### Forgot the password? (read it back — safe, read-only)
 
 ```bash
-aws elasticbeanstalk describe-configuration-settings \
-  --application-name rockstar-windshield-repair \
-  --environment-name rswr-production \
-  --region us-east-1 \
-  --query "ConfigurationSettings[0].OptionSettings[?Namespace=='aws:elasticbeanstalk:application:environment' && OptionName=='QUEUE_PASSWORD'].Value" \
-  --output text
+scripts/get-queue-password.sh          # prints it
+scripts/get-queue-password.sh --copy   # copies to clipboard instead (better on a shared screen)
 ```
 
-This prints the current password. It changes nothing and cannot break the
-site. (Console alternative: EB → `rswr-production` → Configuration →
-Updates, monitoring, and logging → Environment properties.)
+Changes nothing and cannot break the site. Under the hood:
+
+```bash
+aws amplify get-app --app-id d12me65ddm59c9 --region us-east-1 \
+  --query 'app.environmentVariables.QUEUE_PASSWORD' --output text
+```
+
+(Console alternative: Amplify → the app → Hosting → Environment variables.)
 
 ### Resetting the queue password (preferred: script)
 
@@ -225,125 +251,81 @@ scripts/reset-queue-password.sh            # generates a random password
 scripts/reset-queue-password.sh --prompt   # or type your own (hidden input)
 ```
 
-This does the full app-version deploy correctly every time (git archive →
-S3 → new app version → `update-environment` with the password change in
-the *same* call), waits for Ready/Green, and confirms the site responds
-before printing the new password. It deploys whatever commit is currently
-checked out, so commit or stash first if the tree is dirty. Never pass the
-password as a plain argument — the script refuses that on purpose, since
-it would leak into shell history and `ps` output.
+The script merges the new value into Amplify's existing environment
+variables, triggers a rebuild (required — see below), waits for it to
+succeed, checks the site responds, then prints the new password once.
+Never pass the password as a plain argument — the script refuses that on
+purpose, since it would leak into shell history and `ps` output.
 
-### Changing production env vars (manual recipe / any other var)
+### Changing production env vars (any var)
 
-> **⚠️ Never change env vars with a bare `update-environment
-> --option-settings` call or via the EB console alone.** EB skips the
-> predeploy build hook on config-only updates, which ships unbuilt source
-> and **takes the site down** (this happened on 2026-07-01 — ~15 min
-> outage; see `docs/SESSION_NOTES.md`). Env-var changes must ride a full
-> app-version deploy: include `--option-settings` **in the same
-> `update-environment` call as `--version-label`**.
-
-```bash
-cd /path/to/rswr_website
-
-# 1. Package the current commit
-git archive --format=zip -o deploy.zip HEAD
-
-# 2. Upload to S3
-aws s3 cp deploy.zip s3://elasticbeanstalk-us-east-1-973196283632/rswr/deploy.zip
-
-# 3. Create an application version (label: what-changed-YYMMDD)
-aws elasticbeanstalk create-application-version \
-  --application-name rockstar-windshield-repair \
-  --version-label queue-password-YYMMDD \
-  --source-bundle S3Bucket=elasticbeanstalk-us-east-1-973196283632,S3Key=rswr/deploy.zip \
-  --region us-east-1
-
-# 4. Deploy it AND set the new env var in ONE call
-aws elasticbeanstalk update-environment \
-  --environment-name rswr-production \
-  --version-label queue-password-YYMMDD \
-  --option-settings Namespace=aws:elasticbeanstalk:application:environment,OptionName=QUEUE_PASSWORD,Value=NEW_PASSWORD_HERE \
-  --region us-east-1
-
-# 5. Wait for Ready/Green, then verify
-aws elasticbeanstalk describe-environments \
-  --environment-names rswr-production --region us-east-1 \
-  --query "Environments[0].[Status,Health]" --output text
-curl -s -o /dev/null -w "%{http_code}\n" https://rockstarwindshield.repair/
-```
-
-The same recipe applies to any other env var — just swap the
-`OptionName`/`Value`. Save the new password somewhere durable (password
-manager) — the site never displays it.
-
-## Deployment (AWS Elastic Beanstalk)
-
-The site deploys to Elastic Beanstalk with the following config:
-
-- **Application:** `rockstar-windshield-repair`
-- **Environment:** `rswr-production`
-- **Platform:** Node.js 22 on 64bit Amazon Linux 2023
-- **Instance:** t3.small
-- **Load Balancer:** ALB with HTTPS (ACM certificate)
-
-### Deploy a new version
+> **⚠️ Two things to get right.**
+>
+> 1. **Amplify env vars are applied at build time**, and `next.config.ts`
+>    inlines the server-only ones into the bundle. Changing a value does
+>    nothing until you **rebuild** — start a job or push a commit.
+> 2. **`update-app --environment-variables` replaces the entire map.**
+>    Passing just the one variable you care about silently deletes all the
+>    others. Always read the current map and merge into it.
 
 ```bash
-# Package the current commit (only tracked files — no local junk)
-git archive --format=zip -o deploy.zip HEAD
+APP_ID=d12me65ddm59c9
 
-# Upload to S3
-aws s3 cp deploy.zip s3://elasticbeanstalk-us-east-1-973196283632/rswr/deploy.zip
+# 1. Read the current map
+CURRENT=$(aws amplify get-app --app-id $APP_ID --region us-east-1 \
+  --query 'app.environmentVariables' --output json)
 
-# Create version and deploy (label convention: what-changed-YYMMDD)
-aws elasticbeanstalk create-application-version \
-  --application-name rockstar-windshield-repair \
-  --version-label what-changed-YYMMDD \
-  --source-bundle S3Bucket=elasticbeanstalk-us-east-1-973196283632,S3Key=rswr/deploy.zip \
-  --region us-east-1
+# 2. Merge your change in (never hand-write the whole map)
+MERGED=$(jq '. + {SOME_VAR: "new-value"}' <<<"$CURRENT")
 
-aws elasticbeanstalk update-environment \
-  --environment-name rswr-production \
-  --version-label what-changed-YYMMDD \
-  --region us-east-1
+# 3. Write it back
+aws amplify update-app --app-id $APP_ID --region us-east-1 \
+  --environment-variables "$MERGED"
+
+# 4. Rebuild so the value actually reaches the runtime
+aws amplify start-job --app-id $APP_ID --branch-name main \
+  --job-type RELEASE --region us-east-1
 ```
 
-If the deploy also needs an env-var change, add `--option-settings` to
-that same `update-environment` call — see
-[Changing production env vars](#changing-production-env-vars-includes-queue-password-reset).
+If you add a **new server-side** var, also add its key to `SERVER_ENV_KEYS`
+in `next.config.ts` — both, or it won't reach the runtime. See
+[`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
 
-### EB Configuration Files
+## Deployment (AWS Amplify)
 
-- `.ebextensions/01-nodecommand.config` — Environment settings (instance type, proxy, env vars)
-- `.platform/hooks/predeploy/01_build.sh` — Runs `npm run build` before deployment.
-  **⚠️ EB skips this hook on config-only updates** (e.g. changing env vars
-  without deploying a new app version) — it only runs on full app-version
-  deploys. A config-only update flips in unbuilt source with no `.next`
-  directory and takes the site down. Always change env vars via a full
-  app-version deploy, not a bare `update-environment --option-settings`
-  call. See `docs/SESSION_NOTES.md` (2026-06-29 → 2026-07-01 entry) for the
-  incident this caused.
-- `Procfile` — Starts the app with `npm run start`
+Pushing to `main` on GitHub auto-deploys. Full reference — build settings,
+the compute role and its IAM policy, SES, and the Amplify gotchas — lives
+in [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
+
+- **App ID:** `d12me65ddm59c9` (`WEB_COMPUTE`), branch `main`
+- **Compute role:** `rockstar-amplify-compute-role` (no static keys)
+
+```bash
+git push origin main                     # deploys
+
+aws amplify list-jobs --app-id d12me65ddm59c9 --branch-name main \
+  --max-results 1 --region us-east-1 \
+  --query 'jobSummaries[0].{Status:status,Commit:commitId}'
+```
+
+> Elastic Beanstalk was retired in the 2026-07-11 migration. `.ebextensions/`,
+> `.platform/`, and `Procfile` are dead weight kept only for reference — the
+> EB environment, its ALB, and its t3.small no longer exist.
 
 ## Git Remotes
 
-- `origin` — GitHub (`wrenchtokeys/rockstar-windshield-repair`)
-- `codecommit-origin` — AWS CodeCommit (us-west-2). A plain `git push`
-  here 403s because the macOS keychain helper interferes; push with:
+- `origin` — GitHub (`wrenchtokeys/rockstar-windshield-repair`), **public**,
+  and the source Amplify deploys from. This is the only remote.
 
-  ```bash
-  git -c credential.helper= \
-      -c "credential.helper=!aws codecommit credential-helper \$@" \
-      -c credential.UseHttpPath=true \
-      push codecommit-origin main
-  ```
+  The old `codecommit-origin` (AWS CodeCommit, us-west-2) was removed on
+  2026-07-25 — it was a leftover from the EB era, five commits behind, and
+  not in the deploy path.
 
 ## DNS (Route 53)
 
 - **Hosted Zone:** `rockstarwindshield.repair` (Z00152269ZHHL7BWWEO5)
-- **A Record:** Alias to EB ALB
-- **www CNAME:** Points to EB environment
+- **Apex + www:** Alias to the Amplify CloudFront distribution
+  (`d12tb39mmpio0g.cloudfront.net`), ACM wildcard cert
 - **Email:** Google Workspace (MX, DKIM, SPF, DMARC) — do not modify
 
 ## Services Offered
