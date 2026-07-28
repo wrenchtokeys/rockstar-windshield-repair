@@ -1,8 +1,13 @@
-import { Phone, FileText } from "lucide-react";
+import Link from "next/link";
+import { Phone, FileText, MessageSquare, Star } from "lucide-react";
 import Button from "@/components/ui/Button";
 import { BUSINESS } from "@/lib/constants";
 
-export default function Hero() {
+interface HeroProps {
+  summary?: { rating: number; count: number } | null;
+}
+
+export default function Hero({ summary }: HeroProps) {
   return (
     <section className="noise-overlay relative flex min-h-[85vh] items-center justify-center bg-zinc-950">
       {/* Background gradient */}
@@ -10,18 +15,34 @@ export default function Hero() {
       <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-transparent to-transparent" />
 
       <div className="relative z-10 mx-auto max-w-7xl px-4 py-20 text-center">
+        {summary && (
+          <Link
+            href="/reviews"
+            className="mb-5 inline-flex items-center gap-2 rounded-full border border-zinc-700 bg-zinc-900/80 px-4 py-1.5 text-sm text-zinc-300 transition-colors hover:border-blue-600"
+          >
+            <Star className="h-4 w-4 fill-blue-500 text-blue-500" />
+            <span className="font-bold text-white">
+              {summary.rating.toFixed(1)}
+            </span>
+            on Google &middot; {summary.count}{" "}
+            {summary.count === 1 ? "review" : "reviews"}
+          </Link>
+        )}
         <p className="mb-4 font-heading text-sm uppercase tracking-[0.3em] text-blue-400">
           Little Rock&apos;s Premier Mobile Service
         </p>
         <h1 className="font-heading text-5xl font-bold uppercase leading-tight tracking-wider text-white md:text-7xl">
-          Rock-Solid
+          Rockstar
           <br />
           <span className="text-blue-600">Windshield Repair</span>
         </h1>
         <p className="mx-auto mt-6 max-w-2xl text-lg text-zinc-400 md:text-xl">
-          Fast, professional windshield chip and crack repair — we come to you
-          anywhere in {BUSINESS.address.city}, {BUSINESS.address.state}.
-          Same-day service. Insurance approved. Fully insured.
+          Chips and cracks fixed in about 30 minutes — at your home, office, or
+          job site anywhere in Central Arkansas. Same-day service, 3-year
+          warranty,{" "}
+          <span className="font-semibold text-white">
+            and most insurance covers repair at $0 out of pocket.
+          </span>
         </p>
         <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
           <Button href="/contact" variant="primary">
@@ -33,6 +54,13 @@ export default function Hero() {
             Call {BUSINESS.phone}
           </Button>
         </div>
+        <a
+          href={BUSINESS.smsHref}
+          className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-blue-400 transition-colors hover:text-blue-300"
+        >
+          <MessageSquare className="h-4 w-4" />
+          Fastest quote: text us a photo of the damage
+        </a>
       </div>
 
       {/* Diagonal bottom */}

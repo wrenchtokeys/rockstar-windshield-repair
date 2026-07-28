@@ -16,23 +16,36 @@ export const SERVICES: ServiceItem[] = [
       "Chips, star breaks, bullseye damage, and small dings — we fix them all quickly before they spread. Our resin injection process restores structural integrity and clarity.",
     icon: CircleDot,
     features: [
+      "$65–$85 depending on travel distance",
+      "Often $0 with comprehensive insurance",
       "30-minute average repair time",
       "Star breaks, bullseye & chip repair",
-      "Restores optical clarity",
-      "Covered by most insurance",
     ],
   },
   {
     title: "Crack Repair",
     slug: "crack-repair",
     description:
-      "Cracks up to 12 inches can often be repaired without full replacement. We use advanced resin technology to seal and strengthen the damaged area.",
+      "Cracks from 4 to 18 inches can often be repaired without full replacement. We use advanced resin technology to seal and strengthen the damaged area.",
     icon: Scaling,
     features: [
-      "Repairs cracks up to 12 inches",
+      "$125 flat for cracks 4–18 inches",
       "Advanced resin technology",
       "Prevents further spreading",
       "Saves you money vs. replacement",
+    ],
+  },
+  {
+    title: "Fleet & Commercial",
+    slug: "fleet-commercial",
+    description:
+      "Keep your fleet on the road with priority scheduling, volume pricing, and dedicated account management for businesses of all sizes.",
+    icon: Building2,
+    features: [
+      "Volume pricing from $50 down to $25 per repair",
+      "Priority scheduling",
+      "Dedicated account management",
+      "Minimal vehicle downtime",
     ],
   },
   {
@@ -59,19 +72,6 @@ export const SERVICES: ServiceItem[] = [
       "Zero out-of-pocket for most repairs",
       "We handle all paperwork",
       "All major insurers accepted",
-    ],
-  },
-  {
-    title: "Fleet & Commercial",
-    slug: "fleet-commercial",
-    description:
-      "Keep your fleet on the road with priority scheduling, volume pricing, and dedicated account management for businesses of all sizes.",
-    icon: Building2,
-    features: [
-      "Priority scheduling",
-      "Volume pricing available",
-      "Dedicated account management",
-      "Minimal vehicle downtime",
     ],
   },
   {

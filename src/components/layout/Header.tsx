@@ -39,14 +39,22 @@ export default function Header() {
             ))}
           </nav>
 
-          {/* Desktop CTA */}
-          <a
-            href={BUSINESS.phoneHref}
-            className="hidden items-center gap-2 bg-blue-600 px-5 py-2 text-sm font-bold uppercase tracking-widest text-white transition-colors hover:bg-blue-500 btn-angular lg:flex"
-          >
-            <Phone className="h-4 w-4" />
-            {BUSINESS.phone}
-          </a>
+          {/* Desktop CTAs */}
+          <div className="hidden items-center gap-3 lg:flex">
+            <a
+              href={BUSINESS.phoneHref}
+              className="flex items-center gap-2 border-2 border-blue-600 px-4 py-2 text-sm font-bold uppercase tracking-widest text-blue-500 transition-colors hover:bg-blue-600 hover:text-white btn-angular"
+            >
+              <Phone className="h-4 w-4" />
+              {BUSINESS.phone}
+            </a>
+            <Link
+              href="/contact"
+              className="flex items-center gap-2 bg-blue-600 px-5 py-2 text-sm font-bold uppercase tracking-widest text-white transition-colors hover:bg-blue-500 btn-angular"
+            >
+              Free Quote
+            </Link>
+          </div>
 
           {/* Mobile Hamburger */}
           <button

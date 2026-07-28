@@ -8,6 +8,51 @@ local SEO). It's a living doc — update it as items ship.
 
 ## ✅ Recently shipped
 
+- **Gallery cleanup (2026-07-28).** Cropped the burned-in job-tracker
+  watermarks ("2284 #1 Before" etc.) off 7 of the 10 published photos
+  (originals recoverable from git history). Fixed labels that didn't match
+  their photos: item 2 ("Half-Moon" → "Combination Break" — the photo shows a
+  chip with crack wings), item 3 ("Combination" → "Star Break"), item 4
+  ("Angel Wing" → "Double Chip & Crack" — the photo shows two impact points
+  with a connecting crack). The unused `before-5`/`after-5` pair stays
+  unpublished deliberately: the after shot has a finger over the lens.
+  Note for future job photos: shoot the clean before/after picture *before*
+  stamping it in the job-tracker app, and drop the clean versions in
+  `public/images/gallery/`. Also: the long-running local dev server was
+  serving stale optimized images from `.next/cache/images` (pre-Jun-29
+  photos under the same filenames) — cleared; production verified
+  unaffected.
+- **Referral + repair-credit guarantee surfaced (2026-07-28).** The
+  "you never lose what you paid" replacement-credit (via the family-owned
+  partner shop, deliberately unnamed — no website to link to) now appears
+  as a homepage card, a banner under the services pricing, the FAQ warranty
+  answer, and FAQ schema. Removed the "we don't profit either way" phrasing
+  since the partner is family.
+
+- **Published pricing + repair-only positioning (2026-07-28).** Public prices
+  now live site-wide from `PRICING` in `src/lib/constants.ts`: chips $65–$85
+  (varies by travel), cracks 4–18 in at a flat $125, fleet volume ladder
+  $50→$25 per repair (max 5 per windshield, qualifying fleets only — teaser
+  plus "Get a Personalized Fleet Quote" CTA that pre-selects Fleet on the
+  contact form via `/contact?service=Fleet+%26+Commercial`). Every price
+  mention is paired with the "$0 out of pocket with comprehensive insurance"
+  line so the price filters cash customers without scaring off insured ones.
+  New "We Don't Sell Windshields" homepage section states the repair-only
+  incentive advantage. Crack-length copy corrected from 12 to 18 inches in
+  FAQ, services data, and JSON-LD; schema now carries real `priceRange` and
+  per-offer prices.
+- **Text-a-photo lead channel (2026-07-28).** `BUSINESS.smsHref` deep link
+  (prefilled body) added to: mobile sticky bar (now Call | Text a Photo),
+  hero, CTA banner, mobile menu, services page, and contact info. Captures
+  the large slice of visitors who won't call or fill a form; a damage photo
+  also lets Drake quote instantly.
+- **Nav + CTA cleanup (2026-07-28).** Removed "Home" (logo covers it),
+  renamed Gallery → "Our Work", moved Contact out of the link list into a
+  persistent **Free Quote** button in the desktop header (phone became an
+  outline button beside it); mobile menu now stacks Quote / Text / Call;
+  footer keeps a Contact link. Hero shows the live Google rating badge above
+  the headline.
+
 - **Removed placeholder/fake testimonials.** Fabricated reviews (with invented
   customer names) were appearing on both the home page testimonials carousel
   and the `/reviews` page. These violate the FTC's rules on endorsements and

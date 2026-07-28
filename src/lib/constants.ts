@@ -1,8 +1,10 @@
 export const BUSINESS = {
   name: "Rockstar Windshield Repair",
-  tagline: "Rock-Solid Windshield Repair",
+  tagline: "Little Rock's Mobile Windshield Repair Pros",
   phone: process.env.NEXT_PUBLIC_BUSINESS_PHONE || "",
   phoneHref: `tel:+1${(process.env.NEXT_PUBLIC_BUSINESS_PHONE || "").replace(/\D/g, "")}`,
+  // "?&body=" (not "?body=") is the one separator both iOS and Android honor.
+  smsHref: `sms:+1${(process.env.NEXT_PUBLIC_BUSINESS_PHONE || "").replace(/\D/g, "")}?&body=${encodeURIComponent("Hi Rockstar! I'd like a quote — here's a photo of my windshield damage:")}`,
   email: process.env.NEXT_PUBLIC_BUSINESS_EMAIL || "",
   domain: "rockstarwindshield.repair",
   // Google Business Profile links. Set these once the profile is live:
@@ -76,13 +78,23 @@ export const SERVICE_CITIES = [
   },
 ] as const;
 
+export const PRICING = {
+  chipMin: 65,
+  chipMax: 85,
+  crack: 125,
+  crackMinInches: 4,
+  crackMaxInches: 18,
+  // Fleet volume ladder: price per repair on the same unit, 1st through 5th.
+  // After 5 repairs on one windshield we recommend replacement.
+  fleetLadder: [50, 40, 35, 30, 25],
+  fleetMaxRepairsPerUnit: 5,
+} as const;
+
 export const NAV_LINKS = [
-  { label: "Home", href: "/" },
   { label: "Services", href: "/services" },
-  { label: "About", href: "/about" },
-  { label: "Gallery", href: "/gallery" },
+  { label: "Our Work", href: "/gallery" },
   { label: "Reviews", href: "/reviews" },
   { label: "Service Area", href: "/service-area" },
   { label: "FAQ", href: "/faq" },
-  { label: "Contact", href: "/contact" },
+  { label: "About", href: "/about" },
 ] as const;

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Hero from "@/components/home/Hero";
 import ValueProps from "@/components/home/ValueProps";
+import RepairOnly from "@/components/home/RepairOnly";
 import ServicesPreview from "@/components/home/ServicesPreview";
 import CTABanner from "@/components/home/CTABanner";
 import SectionHeading from "@/components/ui/SectionHeading";
@@ -20,8 +21,9 @@ export default async function Home() {
 
   return (
     <>
-      <Hero />
+      <Hero summary={summary} />
       <ValueProps />
+      <RepairOnly />
       <ServicesPreview />
 
       {/* Testimonials — only render real reviews */}

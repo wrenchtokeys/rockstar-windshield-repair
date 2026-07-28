@@ -1,6 +1,6 @@
-import { AlertTriangle, Phone } from "lucide-react";
+import { AlertTriangle, Phone, MessageSquare } from "lucide-react";
 import Button from "@/components/ui/Button";
-import { BUSINESS } from "@/lib/constants";
+import { BUSINESS, PRICING } from "@/lib/constants";
 
 export default function CTABanner() {
   return (
@@ -11,12 +11,17 @@ export default function CTABanner() {
           Don&apos;t Wait — Small Chips Become Big Cracks
         </h2>
         <p className="mx-auto mt-4 max-w-2xl text-lg text-white/80">
-          A small chip can spread across your entire windshield in days.
-          Get it repaired now and save hundreds on a full replacement later.
+          A small chip can spread across your entire windshield in days. A $
+          {PRICING.chipMin} repair today beats a $400+ replacement next week —
+          and with comprehensive insurance it&apos;s usually $0.
         </p>
         <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
           <Button href="/contact" variant="secondary" className="bg-zinc-950 text-white hover:bg-zinc-800">
             Get a Free Quote
+          </Button>
+          <Button href={BUSINESS.smsHref} variant="outline" className="border-white text-white hover:bg-white hover:text-blue-600">
+            <MessageSquare className="mr-2 h-4 w-4" />
+            Text a Photo
           </Button>
           <Button href={BUSINESS.phoneHref} variant="outline" className="border-white text-white hover:bg-white hover:text-blue-600">
             <Phone className="mr-2 h-4 w-4" />

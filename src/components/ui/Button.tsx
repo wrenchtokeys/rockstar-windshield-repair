@@ -48,6 +48,14 @@ export default function Button({
         </a>
       );
     }
+    const isProtocolLink = /^(tel|sms|mailto):/.test(href);
+    if (isProtocolLink) {
+      return (
+        <a href={href} className={styles}>
+          {children}
+        </a>
+      );
+    }
     return (
       <Link href={href} className={styles}>
         {children}

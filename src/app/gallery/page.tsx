@@ -20,33 +20,33 @@ const galleryItems = [
     after: "/images/gallery/after-1.jpeg",
   },
   {
-    title: "Half-Moon Break Repair",
+    title: "Combination Break Repair",
     description:
-      "Another crescent-shaped impact caught just in time — right in front of the driver, hard to ignore. Filled and cured on-site, no spreading, no replacement needed.",
+      "A sharp impact already throwing cracks in two directions — right in the driver's field of view, hard to ignore. Filled and cured on-site, no spreading, no replacement needed.",
     tag: "Chip Repair",
     before: "/images/gallery/before-2.jpeg",
     after: "/images/gallery/after-2.jpeg",
   },
   {
-    title: "Combination Break Repair",
+    title: "Star Break Repair",
     description:
-      "Multiple damage types in one impact — a central chip with radiating cracks and sub-surface fracturing. These get worse fast if left alone. Repaired on-site at the customer's workplace in under 30 minutes.",
+      "A central impact with cracks radiating in every direction — the kind of break that spreads fast if left alone. Repaired on-site at the customer's workplace in under 30 minutes.",
     tag: "Chip Repair",
     before: "/images/gallery/before-3.jpeg",
     after: "/images/gallery/after-3.jpeg",
   },
   {
-    title: "Angel Wing Break Repair",
+    title: "Double Chip & Crack Repair",
     description:
-      "Two cracks spreading symmetrically from a single impact point, forming a distinctive wing pattern. This type of break can run across the full windshield quickly. Caught early and sealed before it spread.",
+      "Two impact points with a crack running between them — left alone, this windshield was headed for a full replacement. Both chips filled and the crack sealed in a single visit.",
     tag: "Crack Repair",
     before: "/images/gallery/before-4.jpeg",
     after: "/images/gallery/after-4.jpeg",
   },
   {
-    title: "Star Break — Fleet Vehicle",
+    title: "Severe Star Break Repair",
     description:
-      "Fleet truck windshield with a star break pattern. Mobile service — we came to the fleet yard and repaired it between routes. Zero downtime for the driver.",
+      "A severe star break on a fleet truck windshield. Mobile service — we came to the fleet yard and repaired it between routes. Zero downtime for the driver.",
     tag: "Fleet",
     before: "/images/gallery/before-6.jpeg",
     after: "/images/gallery/after-6.jpeg",

@@ -23,7 +23,7 @@ const faqs = [
   {
     question: "Can you fix a long crack in my windshield?",
     answer:
-      "We can repair cracks up to 12 inches long using advanced resin injection. If the crack is longer, in your direct line of sight, or at the edge of the windshield where structural integrity is a concern, we'll honestly tell you and recommend a full replacement. We'd rather do the right thing than take your money for a repair that won't hold.",
+      "We can repair cracks from 4 up to 18 inches long using advanced resin injection — a flat $125. If the crack is longer, in your direct line of sight, or at the edge of the windshield where structural integrity is a concern, we'll honestly tell you and recommend a full replacement. We'd rather do the right thing than take your money for a repair that won't hold.",
   },
   {
     question: "Do you come to my location?",
@@ -38,12 +38,12 @@ const faqs = [
   {
     question: "How much does windshield repair cost?",
     answer:
-      "Most single-chip repairs cost between $50 and $100. Longer cracks cost more depending on length. But here's the thing: if you have comprehensive insurance, your repair is almost always covered at zero cost to you. We'll check your coverage before we start so there are no surprises.",
+      "Chip repairs run $65–$85 depending on how far we travel to you. Crack repairs (4–18 inches) are a flat $125. Fleet and commercial accounts get volume pricing starting at $50 per repair and dropping as low as $25. But here's the thing: if you have comprehensive insurance, your repair is almost always covered at zero cost to you. We'll check your coverage before we start so there are no surprises.",
   },
   {
     question: "Should I repair or replace my windshield?",
     answer:
-      "Repair is always better if the damage qualifies — it's faster, cheaper, and keeps your original factory seal intact. Chips and cracks under 12 inches can usually be repaired. If the damage is too large, too deep, or in a critical area, we'll tell you straight and recommend replacement. We never push unnecessary services.",
+      "Repair is always better if the damage qualifies — it's faster, cheaper, and keeps your original factory seal intact. Chips and cracks up to 18 inches can usually be repaired. If the damage is too large, too deep, or in a critical area, we'll tell you straight and recommend replacement. We never push unnecessary services — we're repair-only, so we have no replacement to sell you.",
   },
   {
     question: "Will the repair be visible?",
@@ -58,7 +58,7 @@ const faqs = [
   {
     question: "Do you work on fleet vehicles and commercial trucks?",
     answer:
-      "Absolutely. We work with several fleet companies in Central Arkansas. We offer volume pricing, priority scheduling, and can service multiple vehicles in one visit at your yard or facility. Fleet managers love us because there's zero vehicle downtime — we come to you and repairs take under 30 minutes per vehicle.",
+      "Absolutely. We work with several fleet companies in Central Arkansas. Qualifying fleets get volume pricing that starts at $50 per repair and drops as low as $25, with priority scheduling and multiple vehicles serviced in one visit at your yard or facility. Fleet managers love us because there's zero vehicle downtime — we come to you and repairs take under 30 minutes per vehicle. Reach out for a personalized fleet quote.",
   },
   {
     question: "What if my chip spreads into a crack before I can get it repaired?",
@@ -73,7 +73,7 @@ const faqs = [
   {
     question: "Do you offer a warranty on repairs?",
     answer:
-      "Every repair comes with a 3-year warranty. If a repaired chip or crack fails within that period, we'll fix it again at no charge. And if the damage ends up needing a full replacement down the road, we'll deduct the cost of your original repair from the price of a new windshield through our replacement partner. You never lose what you paid.",
+      "Every repair comes with a 3-year warranty. If a repaired chip or crack fails within that period, we'll fix it again at no charge. And if the damage ends up needing a full replacement down the road, we'll deduct the cost of your original repair from the price of a new windshield through our replacement partner — a family-owned glass shop we know and trust. You never lose what you paid.",
   },
 ];
 

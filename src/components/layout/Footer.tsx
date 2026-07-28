@@ -39,6 +39,12 @@ export default function Footer() {
                   {link.label}
                 </Link>
               ))}
+              <Link
+                href="/contact"
+                className="text-sm text-zinc-400 transition-colors hover:text-blue-600"
+              >
+                Contact / Free Quote
+              </Link>
             </nav>
           </div>
 

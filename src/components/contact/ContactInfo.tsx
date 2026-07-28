@@ -1,4 +1,4 @@
-import { Phone, Mail, Clock, MapPin, Shield } from "lucide-react";
+import { Phone, Mail, Clock, MapPin, Shield, MessageSquare } from "lucide-react";
 import { BUSINESS } from "@/lib/constants";
 
 export default function ContactInfo() {
@@ -21,6 +21,19 @@ export default function ContactInfo() {
         <div>
           <p className="text-xs text-zinc-400">Phone</p>
           <p className="font-semibold">{BUSINESS.phone}</p>
+        </div>
+      </a>
+
+      <a
+        href={BUSINESS.smsHref}
+        className="flex items-center gap-3 text-zinc-300 transition-colors hover:text-blue-600"
+      >
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600/10">
+          <MessageSquare className="h-5 w-5 text-blue-600" />
+        </div>
+        <div>
+          <p className="text-xs text-zinc-400">Text (fastest)</p>
+          <p className="font-semibold">Send a photo of the damage</p>
         </div>
       </a>
 

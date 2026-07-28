@@ -17,7 +17,12 @@ export const metadata: Metadata = createMetadata(
   "/contact"
 );
 
-export default function ContactPage() {
+export default async function ContactPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ service?: string }>;
+}) {
+  const { service } = await searchParams;
   return (
     <div className="bg-zinc-950 py-20">
       <div className="mx-auto max-w-7xl px-4">
@@ -29,7 +34,7 @@ export default function ContactPage() {
           {/* Form */}
           <div className="lg:col-span-3">
             <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-6 md:p-8">
-              <ContactForm />
+              <ContactForm defaultService={service} />
             </div>
           </div>
 

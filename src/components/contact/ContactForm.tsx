@@ -17,8 +17,13 @@ const initialState: FormState = {
   message: "",
 };
 
-export default function ContactForm() {
+export default function ContactForm({
+  defaultService,
+}: {
+  defaultService?: string;
+}) {
   const [state, formAction, pending] = useActionState(submitContactForm, initialState);
+  const preselected = SERVICE_OPTIONS.find((s) => s === defaultService) ?? "";
 
   return (
     <form action={formAction} className="space-y-4">
@@ -94,6 +99,7 @@ export default function ContactForm() {
           <select
             id="serviceType"
             name="serviceType"
+            defaultValue={preselected}
             className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2.5 text-sm text-white focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
           >
             <option value="">Select a service</option>

@@ -46,9 +46,22 @@ export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
               {link.label}
             </Link>
           ))}
+          <Link
+            href="/contact"
+            onClick={onClose}
+            className="mt-6 flex items-center justify-center bg-blue-600 py-3 text-sm font-bold uppercase tracking-widest text-white btn-angular"
+          >
+            Get a Free Quote
+          </Link>
+          <a
+            href={BUSINESS.smsHref}
+            className="mt-3 flex items-center justify-center border-2 border-blue-600 py-3 text-sm font-bold uppercase tracking-widest text-blue-500 btn-angular"
+          >
+            Text a Photo of the Damage
+          </a>
           <a
             href={BUSINESS.phoneHref}
-            className="mt-6 flex items-center justify-center bg-blue-600 py-3 text-sm font-bold uppercase tracking-widest text-white btn-angular"
+            className="mt-3 flex items-center justify-center border-2 border-zinc-700 py-3 text-sm font-bold uppercase tracking-widest text-zinc-300 btn-angular"
           >
             Call {BUSINESS.phone}
           </a>

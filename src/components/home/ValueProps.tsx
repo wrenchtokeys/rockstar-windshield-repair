@@ -1,4 +1,4 @@
-import { Clock, Car, Shield, Award } from "lucide-react";
+import { Clock, Car, BadgeDollarSign, Award } from "lucide-react";
 import Card from "@/components/ui/Card";
 
 const props = [
@@ -13,9 +13,10 @@ const props = [
     description: "We come to your home, office, or wherever you are in the Little Rock area.",
   },
   {
-    icon: Shield,
-    title: "Fully Insured",
-    description: "We're fully insured for your peace of mind on every job.",
+    icon: BadgeDollarSign,
+    title: "$0 With Insurance",
+    description:
+      "Most comprehensive policies cover repair at zero out-of-pocket — we handle the paperwork.",
   },
   {
     icon: Award,

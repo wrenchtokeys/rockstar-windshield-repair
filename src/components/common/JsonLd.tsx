@@ -36,20 +36,29 @@ export default async function JsonLd() {
       itemListElement: [
         {
           "@type": "Offer",
+          priceCurrency: "USD",
+          priceSpecification: {
+            "@type": "PriceSpecification",
+            minPrice: 65,
+            maxPrice: 85,
+            priceCurrency: "USD",
+          },
           itemOffered: {
             "@type": "Service",
             name: "Chip & Stone Break Repair",
             description:
-              "Professional repair of chips, star breaks, and bullseye damage using resin injection.",
+              "Professional repair of chips, star breaks, and bullseye damage using resin injection. $65–$85 depending on travel distance; often $0 with comprehensive insurance.",
           },
         },
         {
           "@type": "Offer",
+          price: 125,
+          priceCurrency: "USD",
           itemOffered: {
             "@type": "Service",
             name: "Crack Repair",
             description:
-              "Repair of windshield cracks up to 12 inches using advanced resin technology.",
+              "Repair of windshield cracks from 4 to 18 inches using advanced resin technology. Flat $125.",
           },
         },
         {
@@ -67,7 +76,7 @@ export default async function JsonLd() {
             "@type": "Service",
             name: "Fleet & Commercial Service",
             description:
-              "Volume pricing and priority scheduling for fleet vehicles and commercial accounts.",
+              "Volume pricing for qualifying fleets — from $50 down to $25 per repair — with priority scheduling for fleet vehicles and commercial accounts.",
           },
         },
         {
@@ -95,7 +104,7 @@ export default async function JsonLd() {
         closes: "16:00",
       },
     ],
-    priceRange: "$$",
+    priceRange: "$65-$125",
     paymentAccepted: "Cash, Credit Card, Insurance",
     // Sourced live from the Places API — omitted until there's at least one
     // real Google review, so this never publishes a fabricated rating.
@@ -138,7 +147,15 @@ export default async function JsonLd() {
         name: "Can you fix a long crack in my windshield?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "We can repair cracks up to 12 inches long. If the crack is longer or in the driver's direct line of sight, we'll recommend a full replacement and can refer you to a trusted partner.",
+          text: "We can repair cracks from 4 up to 18 inches long for a flat $125. If the crack is longer or in the driver's direct line of sight, we'll recommend a full replacement and can refer you to a trusted partner.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "How much does windshield repair cost?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Chip repairs are $65–$85 depending on travel distance. Crack repairs (4–18 inches) are a flat $125. With comprehensive insurance, most repairs are $0 out of pocket — we handle the paperwork. Qualifying fleets get volume pricing from $50 down to $25 per repair.",
         },
       },
       {
@@ -147,6 +164,14 @@ export default async function JsonLd() {
         acceptedAnswer: {
           "@type": "Answer",
           text: "Yes! We're a fully mobile service. We come to your home, office, or wherever you are in the Little Rock, AR metro area and Central Arkansas.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Do you offer a warranty on repairs?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Every repair comes with a 3-year warranty. And if your windshield ever needs a full replacement anyway, we deduct the full cost of your original repair from the price of a new windshield through our replacement partner — so you never lose what you paid.",
         },
       },
       {
