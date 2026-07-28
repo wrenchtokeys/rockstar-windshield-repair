@@ -37,9 +37,14 @@ export const SERVICE_CITIES = [
       "Just across the river, we serve all of North Little Rock including Park Hill, Lakewood, and the McCain Mall area.",
   },
   {
-    name: "Conway",
+    name: "East End",
     description:
-      "We regularly serve Conway and the surrounding college-town community with mobile windshield repair services.",
+      "We regularly serve the East End community in Saline County with fast, mobile windshield chip and crack repair — right at your home or job site, just south of Little Rock.",
+  },
+  {
+    name: "Sheridan",
+    description:
+      "Grant County drivers count on Rockstar for same-day mobile windshield repair throughout Sheridan and the surrounding area — no trip into the city required.",
   },
   {
     name: "Benton",

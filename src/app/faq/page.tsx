@@ -33,7 +33,7 @@ const faqs = [
   {
     question: "What areas do you serve?",
     answer:
-      "We serve Little Rock, North Little Rock, Conway, Benton, Bryant, Jacksonville, Cabot, Sherwood, Maumelle, Hot Springs, and all surrounding Central Arkansas communities. If you're within about an hour of Little Rock, give us a call — we probably cover your area.",
+      "We serve Little Rock, North Little Rock, East End, Sheridan, Benton, Bryant, Jacksonville, Cabot, Sherwood, Maumelle, Hot Springs, and all surrounding Central Arkansas communities. If you're within about an hour of Little Rock, give us a call — we probably cover your area.",
   },
   {
     question: "How much does windshield repair cost?",

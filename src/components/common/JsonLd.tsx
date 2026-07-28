@@ -179,7 +179,7 @@ export default async function JsonLd() {
         name: "What areas do you serve?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "We serve Little Rock, North Little Rock, Conway, Benton, Bryant, Jacksonville, Cabot, Sherwood, Maumelle, Hot Springs, and surrounding Central Arkansas communities.",
+          text: "We serve Little Rock, North Little Rock, East End, Sheridan, Benton, Bryant, Jacksonville, Cabot, Sherwood, Maumelle, Hot Springs, and surrounding Central Arkansas communities.",
         },
       },
     ],

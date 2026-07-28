@@ -6,8 +6,8 @@ import { SERVICE_CITIES, BUSINESS } from "@/lib/constants";
 import { MapPin } from "lucide-react";
 
 export const metadata: Metadata = createMetadata(
-  "Service Area",
-  "Rockstar Windshield Repair serves Little Rock, North Little Rock, Conway, Benton, Bryant, and surrounding Central Arkansas communities.",
+  "Service Area — Little Rock, East End & Sheridan, AR",
+  "Rockstar Windshield Repair serves Little Rock, North Little Rock, East End, Sheridan, Benton, Bryant, and surrounding Central Arkansas communities with fast mobile windshield repair.",
   "/service-area"
 );
 

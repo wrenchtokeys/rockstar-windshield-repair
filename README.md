@@ -339,7 +339,7 @@ aws amplify list-jobs --app-id d12me65ddm59c9 --branch-name main \
 
 ## Service Area
 
-Little Rock, North Little Rock, Conway, Benton, Bryant, Jacksonville, Cabot, Sherwood, Maumelle, Hot Springs
+Little Rock, North Little Rock, East End, Sheridan, Benton, Bryant, Jacksonville, Cabot, Sherwood, Maumelle, Hot Springs
 
 ## Contact
 

@@ -120,8 +120,8 @@ These require info only the business owner has:
       incident in docs/SESSION_NOTES.md.
 - [ ] **Finish the Google Business Profile** as a *service-area business*
       (hide street address; add service-area cities: Little Rock, North Little
-      Rock, Conway, Benton, Bryant, Jacksonville, Cabot, Sherwood, Maumelle,
-      Hot Springs).
+      Rock, East End, Sheridan, Benton, Bryant, Jacksonville, Cabot, Sherwood,
+      Maumelle, Hot Springs).
 - [ ] **Set GBP categories** — Primary: `Auto glass repair service`;
       Secondary: `Auto repair shop`.
 - [ ] **Keep asking for reviews.** There are 2 real 5-star reviews so far
@@ -160,7 +160,7 @@ Review link (opens the rating dialog directly):
       naturally: *"feel free to snap a pic of the repair for the review."*
       Before/after is a windshield repair's best sales pitch.
 - [ ] **Let them mention where/what.** If a customer naturally writes
-      "came out to Conway" or "fixed my rock chip", that text helps local
+      "came out to East End" or "fixed my rock chip", that text helps local
       ranking. Can't script it — but *"mention what we fixed if you don't
       mind"* is a fair nudge.
 
@@ -237,7 +237,7 @@ Review link (opens the rating dialog directly):
 ## 🛠️ Near-term website upgrades
 
 - [ ] **Per-city landing pages.** Dedicated, indexable pages for each service
-      area (e.g. `/windshield-repair/conway`) with localized copy. Big local-SEO
+      area (e.g. `/windshield-repair/east-end`) with localized copy. Big local-SEO
       win for a service-area business — currently all cities share one page.
 - [ ] **Service + city schema** on those pages (`Service`, `areaServed`).
 - [ ] **Analytics + conversion tracking.** Add privacy-friendly analytics and
