@@ -3,6 +3,7 @@ import Image from "next/image";
 import { createMetadata } from "@/lib/metadata";
 import SectionHeading from "@/components/ui/SectionHeading";
 import Button from "@/components/ui/Button";
+import Breadcrumbs from "@/components/common/Breadcrumbs";
 
 export const metadata: Metadata = createMetadata(
   "Gallery",
@@ -56,8 +57,9 @@ const galleryItems = [
 export default function GalleryPage() {
   return (
     <div className="bg-zinc-950 py-20">
+      <Breadcrumbs items={[{ label: "Our Work", href: "/gallery" }]} />
       <div className="mx-auto max-w-7xl px-4">
-        <SectionHeading subtitle="Real results from real repairs.">
+        <SectionHeading as="h1" subtitle="Real results from real repairs.">
           Our Work
         </SectionHeading>
 

@@ -4,6 +4,7 @@ import SectionHeading from "@/components/ui/SectionHeading";
 import ContactForm from "@/components/contact/ContactForm";
 import ContactInfo from "@/components/contact/ContactInfo";
 import MapEmbed from "@/components/contact/MapEmbed";
+import Breadcrumbs from "@/components/common/Breadcrumbs";
 
 // Force dynamic rendering so this route is never served from the CDN cache.
 // The contact form uses a Server Action (POST /contact); if the page is
@@ -25,8 +26,9 @@ export default async function ContactPage({
   const { service } = await searchParams;
   return (
     <div className="bg-zinc-950 py-20">
+      <Breadcrumbs items={[{ label: "Contact", href: "/contact" }]} />
       <div className="mx-auto max-w-7xl px-4">
-        <SectionHeading subtitle="Get your free quote in minutes.">
+        <SectionHeading as="h1" subtitle="Get your free quote in minutes.">
           Contact Us
         </SectionHeading>
 

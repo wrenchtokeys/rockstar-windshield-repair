@@ -12,6 +12,12 @@ export const BUSINESS = {
   //   NEXT_PUBLIC_GOOGLE_PROFILE_URL → your public Google Maps/Business listing URL
   googleReviewUrl: process.env.NEXT_PUBLIC_GOOGLE_REVIEW_URL || "",
   googleProfileUrl: process.env.NEXT_PUBLIC_GOOGLE_PROFILE_URL || "",
+  // Social profiles. Fill these in as the accounts go live; empty values are
+  // filtered out of the JSON-LD `sameAs` array so nothing broken gets published.
+  social: {
+    facebook: process.env.NEXT_PUBLIC_FACEBOOK_URL || "",
+    instagram: process.env.NEXT_PUBLIC_INSTAGRAM_URL || "",
+  },
   address: {
     city: "Little Rock",
     state: "AR",
@@ -100,6 +106,7 @@ export const NAV_LINKS = [
   { label: "Our Work", href: "/gallery" },
   { label: "Reviews", href: "/reviews" },
   { label: "Service Area", href: "/service-area" },
+  { label: "Blog", href: "/blog" },
   { label: "FAQ", href: "/faq" },
   { label: "About", href: "/about" },
 ] as const;

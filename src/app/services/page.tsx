@@ -5,6 +5,7 @@ import { BUSINESS, PRICING } from "@/lib/constants";
 import SectionHeading from "@/components/ui/SectionHeading";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
+import Breadcrumbs from "@/components/common/Breadcrumbs";
 import { CheckCircle, BadgeDollarSign, Truck } from "lucide-react";
 
 export const metadata: Metadata = createMetadata(
@@ -16,8 +17,12 @@ export const metadata: Metadata = createMetadata(
 export default function ServicesPage() {
   return (
     <div className="bg-zinc-950 py-20">
+      <Breadcrumbs items={[{ label: "Services", href: "/services" }]} />
       <div className="mx-auto max-w-7xl px-4">
-        <SectionHeading subtitle="Expert windshield repair for the general public and commercial fleets.">
+        <SectionHeading
+          as="h1"
+          subtitle="Expert windshield repair for the general public and commercial fleets."
+        >
           Our Services
         </SectionHeading>
 

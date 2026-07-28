@@ -3,6 +3,7 @@ import { createMetadata } from "@/lib/metadata";
 import SectionHeading from "@/components/ui/SectionHeading";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
+import Breadcrumbs from "@/components/common/Breadcrumbs";
 import {
   getGoogleReviews,
   getGoogleRatingSummary,
@@ -35,10 +36,54 @@ export default async function ReviewsPage() {
   const reviewLink = BUSINESS.googleReviewUrl;
   const profileLink = BUSINESS.googleProfileUrl;
 
+  // Review + AggregateRating schema, built only from real Google data so we
+  // never publish a fabricated rating. Nested inside the same AutoRepair node
+  // (@id) declared in the global JSON-LD, so search engines tie them together.
+  const reviewSchema =
+    hasReviews || summary
+      ? {
+          "@context": "https://schema.org",
+          "@type": "AutoRepair",
+          "@id": `https://${BUSINESS.domain}/#business`,
+          name: BUSINESS.name,
+          url: `https://${BUSINESS.domain}`,
+          ...(summary
+            ? {
+                aggregateRating: {
+                  "@type": "AggregateRating",
+                  ratingValue: summary.rating,
+                  reviewCount: summary.count,
+                },
+              }
+            : {}),
+          ...(hasReviews
+            ? {
+                review: reviews.map((r) => ({
+                  "@type": "Review",
+                  reviewRating: {
+                    "@type": "Rating",
+                    ratingValue: r.rating,
+                    bestRating: 5,
+                  },
+                  author: { "@type": "Person", name: r.name },
+                  reviewBody: r.text,
+                })),
+              }
+            : {}),
+        }
+      : null;
+
   return (
     <div className="bg-zinc-950 py-20">
+      {reviewSchema && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(reviewSchema) }}
+        />
+      )}
+      <Breadcrumbs items={[{ label: "Reviews", href: "/reviews" }]} />
       <div className="mx-auto max-w-7xl px-4">
-        <SectionHeading subtitle="Don't just take our word for it.">
+        <SectionHeading as="h1" subtitle="Don't just take our word for it.">
           Customer Reviews
         </SectionHeading>
 

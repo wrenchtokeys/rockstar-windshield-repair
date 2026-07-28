@@ -119,7 +119,11 @@ export default async function JsonLd() {
       : {}),
     // Links Google to your other web presences (GBP, social). Populated from
     // env once those URLs exist; empty entries are filtered out.
-    sameAs: [BUSINESS.googleProfileUrl].filter(Boolean),
+    sameAs: [
+      BUSINESS.googleProfileUrl,
+      BUSINESS.social.facebook,
+      BUSINESS.social.instagram,
+    ].filter(Boolean),
   };
 
   const faqSchema = {

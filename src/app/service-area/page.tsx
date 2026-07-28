@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { createMetadata } from "@/lib/metadata";
+import Link from "next/link";
 import SectionHeading from "@/components/ui/SectionHeading";
 import Button from "@/components/ui/Button";
+import Breadcrumbs from "@/components/common/Breadcrumbs";
 import { SERVICE_CITIES, BUSINESS } from "@/lib/constants";
 import { MapPin } from "lucide-react";
 
@@ -14,8 +16,12 @@ export const metadata: Metadata = createMetadata(
 export default function ServiceAreaPage() {
   return (
     <div className="bg-zinc-950 py-20">
+      <Breadcrumbs items={[{ label: "Service Area", href: "/service-area" }]} />
       <div className="mx-auto max-w-7xl px-4">
-        <SectionHeading subtitle="We bring professional windshield repair to your doorstep across Central Arkansas.">
+        <SectionHeading
+          as="h1"
+          subtitle="We bring professional windshield repair to your doorstep across Central Arkansas."
+        >
           Service Area
         </SectionHeading>
 
@@ -56,6 +62,15 @@ export default function ServiceAreaPage() {
             come to you!
           </p>
           <Button href="/contact">Schedule Your Repair</Button>
+          <p className="mt-6 text-sm text-zinc-500">
+            New here?{" "}
+            <Link
+              href="/"
+              className="font-semibold text-blue-500 transition-colors hover:text-blue-400"
+            >
+              See how Rockstar Windshield Repair works &rarr;
+            </Link>
+          </p>
         </div>
       </div>
     </div>

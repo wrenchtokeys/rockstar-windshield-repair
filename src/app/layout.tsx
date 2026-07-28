@@ -5,6 +5,7 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import ClickToCall from "@/components/common/ClickToCall";
 import JsonLd from "@/components/common/JsonLd";
+import Analytics from "@/components/common/Analytics";
 import { BUSINESS } from "@/lib/constants";
 
 const oswald = Oswald({
@@ -27,6 +28,11 @@ export const metadata: Metadata = {
   description:
     "Professional mobile windshield chip and crack repair in Little Rock, AR. Same-day service, insurance approved, 3-year warranty. We come to you.",
   metadataBase: new URL(`https://${BUSINESS.domain}`),
+  // Homepage canonical. Inner pages set their own absolute canonical via
+  // createMetadata(); pages without one fall back to the site root here.
+  alternates: {
+    canonical: "/",
+  },
   keywords: [
     "windshield repair Little Rock",
     "mobile windshield repair AR",
@@ -65,7 +71,12 @@ export const metadata: Metadata = {
       "max-video-preview": -1,
     },
   },
-  verification: {},
+  // Google Search Console verification. Set NEXT_PUBLIC_GSC_VERIFICATION to the
+  // token from the "HTML tag" verification method; renders a
+  // <meta name="google-site-verification"> tag. Omitted when unset.
+  verification: process.env.NEXT_PUBLIC_GSC_VERIFICATION
+    ? { google: process.env.NEXT_PUBLIC_GSC_VERIFICATION }
+    : {},
 };
 
 export default function RootLayout({
@@ -76,6 +87,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${oswald.variable} ${inter.variable}`}>
       <body className="min-h-screen bg-zinc-950 font-sans text-white antialiased">
+        <Analytics />
         <JsonLd />
         <Header />
         <main>{children}</main>

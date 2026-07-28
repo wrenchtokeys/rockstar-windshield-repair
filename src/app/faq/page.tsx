@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { createMetadata } from "@/lib/metadata";
 import SectionHeading from "@/components/ui/SectionHeading";
 import Button from "@/components/ui/Button";
+import Breadcrumbs from "@/components/common/Breadcrumbs";
 
 export const metadata: Metadata = createMetadata(
   "FAQ",
@@ -80,8 +82,12 @@ const faqs = [
 export default function FAQPage() {
   return (
     <div className="bg-zinc-950 py-20">
+      <Breadcrumbs items={[{ label: "FAQ", href: "/faq" }]} />
       <div className="mx-auto max-w-3xl px-4">
-        <SectionHeading subtitle="Everything you need to know about windshield repair.">
+        <SectionHeading
+          as="h1"
+          subtitle="Everything you need to know about windshield repair."
+        >
           Frequently Asked Questions
         </SectionHeading>
 
@@ -99,6 +105,48 @@ export default function FAQPage() {
               </p>
             </div>
           ))}
+        </div>
+
+        {/* Internal links — point readers from FAQ answers to the pages that
+            go deeper, and give crawlers clean topical links. */}
+        <div className="mt-12 rounded-xl border border-zinc-800 bg-zinc-900 p-6">
+          <h2 className="font-heading text-lg font-bold uppercase tracking-wider text-white">
+            Learn More
+          </h2>
+          <ul className="mt-4 grid gap-2 sm:grid-cols-2">
+            <li>
+              <Link
+                href="/services"
+                className="text-sm text-blue-500 transition-colors hover:text-blue-400"
+              >
+                Services &amp; pricing &rarr;
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/service-area"
+                className="text-sm text-blue-500 transition-colors hover:text-blue-400"
+              >
+                Areas we serve &rarr;
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/blog/does-insurance-cover-windshield-repair-in-arkansas"
+                className="text-sm text-blue-500 transition-colors hover:text-blue-400"
+              >
+                Does insurance cover windshield repair in Arkansas? &rarr;
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/blog/can-a-windshield-chip-be-repaired-repair-vs-replace"
+                className="text-sm text-blue-500 transition-colors hover:text-blue-400"
+              >
+                Repair vs. replace: which do you need? &rarr;
+              </Link>
+            </li>
+          </ul>
         </div>
 
         <div className="mt-12 text-center">

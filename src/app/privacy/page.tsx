@@ -11,9 +11,9 @@ export const metadata: Metadata = createMetadata(
 
 export default function PrivacyPage() {
   return (
-    <main className="min-h-screen bg-neutral-950 pt-24 pb-16">
+    <div className="min-h-screen bg-neutral-950 pt-24 pb-16">
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-        <SectionHeading subtitle="Last updated: March 18, 2026">
+        <SectionHeading as="h1" subtitle="Last updated: March 18, 2026">
           Privacy Policy
         </SectionHeading>
 
@@ -108,6 +108,6 @@ export default function PrivacyPage() {
           </section>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

@@ -136,6 +136,10 @@ Open [http://localhost:3000](http://localhost:3000).
 | `GOOGLE_PLACE_ID` | The GBP listing's Place ID: `ChIJgQui0ml6RmERnM1oVer_pdo` |
 | `NEXT_PUBLIC_GOOGLE_REVIEW_URL` | GBP "leave a review" link (`https://g.page/r/CZzNaFXq_6XaEBl/review`) |
 | `NEXT_PUBLIC_GOOGLE_PROFILE_URL` | Public Google listing share URL |
+| `NEXT_PUBLIC_GA_ID` | Google Analytics 4 measurement ID (`G-XXXXXXXXXX`). Unset = no analytics loaded |
+| `NEXT_PUBLIC_GSC_VERIFICATION` | Google Search Console "HTML tag" verification token. Unset = no meta tag |
+| `NEXT_PUBLIC_FACEBOOK_URL` | Facebook page URL — added to JSON-LD `sameAs`. Optional |
+| `NEXT_PUBLIC_INSTAGRAM_URL` | Instagram profile URL — added to JSON-LD `sameAs`. Optional |
 
 Create a `.env.local` file:
 
