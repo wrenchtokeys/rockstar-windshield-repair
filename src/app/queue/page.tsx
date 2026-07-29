@@ -44,6 +44,7 @@ function reviewSmsHref(sub: Submission, followup: boolean): string {
 const EMPTY_LEAD = {
   name: "",
   phone: "",
+  email: "",
   vehicleInfo: "",
   notes: "",
   status: "new" as SubmissionStatus,
@@ -369,6 +370,16 @@ export default function QueuePage() {
                 className="rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white placeholder-zinc-500 focus:border-blue-600 focus:outline-none"
               />
               <input
+                value={newLead.email}
+                onChange={(e) =>
+                  setNewLead({ ...newLead, email: e.target.value })
+                }
+                placeholder="Email (enables automatic review email)"
+                type="email"
+                inputMode="email"
+                className="rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white placeholder-zinc-500 focus:border-blue-600 focus:outline-none"
+              />
+              <input
                 value={newLead.vehicleInfo}
                 onChange={(e) =>
                   setNewLead({ ...newLead, vehicleInfo: e.target.value })
@@ -418,6 +429,7 @@ export default function QueuePage() {
               {newLead.status === "won" && REVIEW_URL && (
                 <span className="text-xs text-green-500">
                   ★ Opens the review text right after saving
+                  {newLead.email.trim() && " · review email sends automatically"}
                 </span>
               )}
               {addError && (
@@ -554,6 +566,14 @@ export default function QueuePage() {
                       {sub.reviewFollowupAt && " · reminded"}
                     </span>
                   )
+                )}
+
+                {/* Automated email channel — sent server-side, no taps */}
+                {sub.status === "won" && sub.reviewEmailSentAt && (
+                  <span className="text-xs text-zinc-500">
+                    ✉ auto-emailed {timeAgo(sub.reviewEmailSentAt)}
+                    {sub.reviewEmailFollowupAt && " · followed up"}
+                  </span>
                 )}
 
                 <div className="flex-1" />

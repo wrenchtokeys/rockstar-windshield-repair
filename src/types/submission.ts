@@ -18,6 +18,11 @@ export interface Submission {
   // this customer, and when the one follow-up reminder is sent.
   reviewRequestedAt?: string;
   reviewFollowupAt?: string;
+  // Automated email channel (SES) — set server-side when the job is marked
+  // Won (initial) and ~3 days later (the single follow-up). Written via a
+  // conditional update BEFORE the send, so they double as the send lock.
+  reviewEmailSentAt?: string;
+  reviewEmailFollowupAt?: string;
   // How the lead arrived. Absent on records created before this field
   // existed — treat missing as "web".
   source?: "web" | "manual";

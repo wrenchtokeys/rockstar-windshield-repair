@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { UpdateCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
+import { UpdateCommand, DeleteCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
 import { docClient, TABLE_NAME } from "@/lib/dynamodb";
-import type { SubmissionStatus } from "@/types/submission";
+import { autoRequestReview } from "@/lib/review-request";
+import type { Submission, SubmissionStatus } from "@/types/submission";
 
 function checkAuth(request: NextRequest) {
   const password = process.env.QUEUE_PASSWORD;
@@ -74,6 +75,16 @@ export async function PATCH(
         ExpressionAttributeValues: values,
       })
     );
+
+    // Job just marked Won → fire the automated review-request email.
+    // Awaited (not fire-and-forget) because serverless kills background
+    // work after the response; idempotent via the conditional-write claim.
+    if (body.status === "won") {
+      const { Item } = await docClient.send(
+        new GetCommand({ TableName: TABLE_NAME, Key: { id } })
+      );
+      if (Item) await autoRequestReview(Item as Submission);
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {
