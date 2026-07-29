@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { submitContactForm } from "@/app/contact/actions";
 import Button from "@/components/ui/Button";
+import { BUSINESS } from "@/lib/constants";
 import type { FormState } from "@/types";
 
 const SERVICE_OPTIONS = [
@@ -156,6 +157,21 @@ export default function ContactForm({
           ))}
         </div>
       </div>
+
+      {/* SMS consent disclosure — required for toll-free number verification
+          (carriers want provable opt-in language where the phone number is
+          collected). Keep this wording in sync with the AWS registration. */}
+      <p className="text-xs leading-relaxed text-zinc-500">
+        By submitting this form, you agree that {BUSINESS.name} may call or
+        text you at the number provided about your quote and service (for
+        example, appointment updates and a review request after your repair).
+        Message &amp; data rates may apply. Message frequency varies. Reply
+        STOP to opt out or HELP for help. See our{" "}
+        <a href="/privacy" className="underline hover:text-zinc-300">
+          Privacy Policy
+        </a>
+        .
+      </p>
 
       <Button type="submit" variant="primary" disabled={pending}>
         {pending ? "Sending..." : "Send Message"}

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ScanCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
 import { docClient, TABLE_NAME } from "@/lib/dynamodb";
+import { autoRequestReview, processDueReviewFollowups } from "@/lib/review-request";
 import type { Submission, SubmissionStatus } from "@/types/submission";
 
 function checkAuth(request: NextRequest) {
@@ -49,6 +50,16 @@ export async function GET(request: NextRequest) {
       result.Items?.sort((a, b) =>
         (b.submittedAt as string).localeCompare(a.submittedAt as string)
       );
+    }
+
+    // Piggyback the automated review follow-ups on dashboard loads — this
+    // runs every poll but only acts when a Won lead's initial email is 3+
+    // days old with no follow-up yet, and the conditional-write claim in
+    // processDueReviewFollowups makes concurrent polls safe.
+    try {
+      await processDueReviewFollowups((result.Items || []) as Submission[]);
+    } catch (error) {
+      console.error("Review follow-up processing failed:", error);
     }
 
     return NextResponse.json({ submissions: result.Items || [] });
@@ -111,7 +122,16 @@ export async function POST(request: NextRequest) {
 
     await docClient.send(new PutCommand({ TableName: TABLE_NAME, Item: item }));
 
-    return NextResponse.json({ submission: item }, { status: 201 });
+    // The parking-lot case: lead added straight in as Won. Same automated
+    // review request as flipping a status to Won; autoTexted tells the
+    // dashboard to skip the manual Messages composer.
+    let autoTexted = false;
+    if (item.status === "won") {
+      const { texted } = await autoRequestReview(item);
+      autoTexted = texted;
+    }
+
+    return NextResponse.json({ submission: item, autoTexted }, { status: 201 });
   } catch (error) {
     console.error("Failed to create submission:", error);
     return NextResponse.json({ error: "Failed to create lead" }, { status: 500 });
