@@ -8,6 +8,36 @@ top. Read this before starting new work — it has context that isn't in
 
 ---
 
+## 2026-07-28 — Automated review requests (email + SMS) and toll-free provisioning
+
+**What shipped** (branch `feature/auto-review-emails`, pending merge to main):
+Won → automatic review-request email via SES (zero taps) + one follow-up 3
+days later, processed piggyback on queue GET (no cron), DynamoDB
+conditional-write claims prevent double-sends. Automated SMS channel via
+AWS End User Messaging is fully wired but dormant until
+`SMS_ORIGINATION_IDENTITY` is set. SMS consent disclosure added to the
+contact form (needed for toll-free verification). Full architecture and
+the activation checklist: `docs/REVIEW_AUTOMATION.md`.
+
+**AWS provisioning done via CLI this session:** toll-free number
++1 (855) 939-4817 ($2/mo) and toll-free verification registration created,
+all fields set, number associated. Still open when this entry was written:
+attach opt-in screenshot of the *deployed* contact form (needs the merge
+to main first), then `submit-registration-version`; Drake to click
+"Request production access" in the End User Messaging console (account is
+in SMS sandbox); after approval set the Amplify env var + IAM permission
+(checklist in the doc).
+
+**Privacy rule established:** the business address on the AWS registration
+is private carrier paperwork. This is a public repo — the address must
+never appear here or on the website. Business is 100% mobile.
+
+**Gotchas:** AWS rejects `https://` in the registration website field
+despite its documented regex (use bare domain). `US_TOLL_FREE` is not a
+valid registration type — it's `US_TOLL_FREE_REGISTRATION`.
+
+---
+
 ## 2026-07-25 — Password recovery was broken; removed CodeCommit remote
 
 **Why it came up:** Drake asked to write the queue password into the docs
