@@ -123,12 +123,15 @@ export async function POST(request: NextRequest) {
     await docClient.send(new PutCommand({ TableName: TABLE_NAME, Item: item }));
 
     // The parking-lot case: lead added straight in as Won. Same automated
-    // review email as flipping a status to Won.
+    // review request as flipping a status to Won; autoTexted tells the
+    // dashboard to skip the manual Messages composer.
+    let autoTexted = false;
     if (item.status === "won") {
-      await autoRequestReview(item);
+      const { texted } = await autoRequestReview(item);
+      autoTexted = texted;
     }
 
-    return NextResponse.json({ submission: item }, { status: 201 });
+    return NextResponse.json({ submission: item, autoTexted }, { status: 201 });
   } catch (error) {
     console.error("Failed to create submission:", error);
     return NextResponse.json({ error: "Failed to create lead" }, { status: 500 });

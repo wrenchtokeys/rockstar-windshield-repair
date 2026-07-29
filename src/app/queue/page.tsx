@@ -136,12 +136,13 @@ export default function QueuePage() {
   };
 
   // Every write goes through here so a failure is visible instead of the
-  // card silently snapping back to its old value.
+  // card silently snapping back to its old value. Returns the parsed
+  // response body on success (PATCH reports autoTexted), null on failure.
   const patchLead = async (
     id: string,
     body: Record<string, unknown>,
     what: string
-  ): Promise<boolean> => {
+  ): Promise<{ autoTexted?: boolean } | null> => {
     try {
       const res = await fetch(`/api/queue/${id}`, {
         method: "PATCH",
@@ -152,13 +153,13 @@ export default function QueuePage() {
         setActionError(
           `Couldn't ${what} (server error ${res.status}). Writes need DynamoDB UpdateItem permission on the leads table.`
         );
-        return false;
+        return null;
       }
       setActionError("");
-      return true;
+      return (await res.json().catch(() => ({}))) as { autoTexted?: boolean };
     } catch {
       setActionError(`Couldn't ${what} — no response from the server.`);
-      return false;
+      return null;
     }
   };
 
@@ -172,14 +173,22 @@ export default function QueuePage() {
   };
 
   const updateStatus = async (sub: Submission, status: SubmissionStatus) => {
-    const ok = await patchLead(sub.id, { status }, "change the status");
-    if (!ok) {
+    const result = await patchLead(sub.id, { status }, "change the status");
+    if (!result) {
       fetchSubmissions();
       return;
     }
     // Marking a job Won opens Messages prefilled with the review request —
-    // one tap to send while the customer is still happy.
-    if (status === "won" && !sub.reviewRequestedAt && sub.phone && REVIEW_URL) {
+    // one tap to send while the customer is still happy. Skipped when the
+    // server already texted them automatically (verified toll-free number).
+    if (
+      status === "won" &&
+      !result.autoTexted &&
+      !sub.reviewRequestedAt &&
+      !sub.reviewSmsSentAt &&
+      sub.phone &&
+      REVIEW_URL
+    ) {
       await markReviewAsked(sub.id, false);
       window.location.href = reviewSmsHref(sub, false);
       return;
@@ -209,8 +218,14 @@ export default function QueuePage() {
 
       // Adding a job straight in as Won is the parking-lot case: the repair
       // is done and the customer is standing right there. Open the review
-      // text immediately, same as flipping the status dropdown to Won.
-      if (created.status === "won" && created.phone && REVIEW_URL) {
+      // text immediately, same as flipping the status dropdown to Won —
+      // unless the server already texted them automatically.
+      if (
+        created.status === "won" &&
+        !data.autoTexted &&
+        created.phone &&
+        REVIEW_URL
+      ) {
         await markReviewAsked(created.id, false);
         window.location.href = reviewSmsHref(created, false);
         return;
@@ -542,8 +557,9 @@ export default function QueuePage() {
                   </a>
                 )}
 
-                {/* Review-request flow for completed jobs */}
-                {sub.status === "won" && sub.phone && REVIEW_URL && (
+                {/* Review-request flow for completed jobs. The manual
+                    Messages flow hides once the automated SMS went out. */}
+                {sub.status === "won" && sub.phone && REVIEW_URL && !sub.reviewSmsSentAt && (
                   !sub.reviewRequestedAt ? (
                     <a
                       href={reviewSmsHref(sub, false)}
@@ -568,7 +584,13 @@ export default function QueuePage() {
                   )
                 )}
 
-                {/* Automated email channel — sent server-side, no taps */}
+                {/* Automated channels — sent server-side, no taps */}
+                {sub.status === "won" && sub.reviewSmsSentAt && (
+                  <span className="text-xs text-zinc-500">
+                    💬 auto-texted {timeAgo(sub.reviewSmsSentAt)}
+                    {sub.reviewSmsFollowupAt && " · followed up"}
+                  </span>
+                )}
                 {sub.status === "won" && sub.reviewEmailSentAt && (
                   <span className="text-xs text-zinc-500">
                     ✉ auto-emailed {timeAgo(sub.reviewEmailSentAt)}

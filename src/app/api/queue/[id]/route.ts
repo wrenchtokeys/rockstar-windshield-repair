@@ -76,17 +76,23 @@ export async function PATCH(
       })
     );
 
-    // Job just marked Won → fire the automated review-request email.
+    // Job just marked Won → fire the automated review request (SMS if a
+    // toll-free number is configured, email if the lead has one).
     // Awaited (not fire-and-forget) because serverless kills background
-    // work after the response; idempotent via the conditional-write claim.
+    // work after the response; idempotent via the conditional-write claims.
+    // autoTexted tells the dashboard to skip the manual Messages composer.
+    let autoTexted = false;
     if (body.status === "won") {
       const { Item } = await docClient.send(
         new GetCommand({ TableName: TABLE_NAME, Key: { id } })
       );
-      if (Item) await autoRequestReview(Item as Submission);
+      if (Item) {
+        const { texted } = await autoRequestReview(Item as Submission);
+        autoTexted = texted;
+      }
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, autoTexted });
   } catch (error) {
     console.error("Failed to update submission:", error);
     return NextResponse.json(
