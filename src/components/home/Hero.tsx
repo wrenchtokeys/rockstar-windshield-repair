@@ -61,6 +61,15 @@ export default function Hero({ summary }: HeroProps) {
           <MessageSquare className="h-4 w-4" />
           Fastest quote: text us a photo of the damage
         </a>
+        <p className="mt-4 text-sm text-zinc-500">
+          Fleet or trucking company?{" "}
+          <Link
+            href="/services#fleet"
+            className="font-semibold text-zinc-300 transition-colors hover:text-blue-400"
+          >
+            Volume pricing &amp; 24/7 driver support &rarr;
+          </Link>
+        </p>
       </div>
 
       {/* Diagonal bottom */}

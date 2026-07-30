@@ -10,6 +10,19 @@ export interface ServiceItem {
 
 export const SERVICES: ServiceItem[] = [
   {
+    title: "Fleet & Trucking",
+    slug: "fleet-commercial",
+    description:
+      "Our specialty. Most of our work is trucking companies and commercial fleets — we come to your yard, knock out multiple units in one visit, and make sure your trucks are done right.",
+    icon: Building2,
+    features: [
+      "Volume pricing from $50 down to $25 per repair",
+      "Multiple units repaired in one yard visit",
+      "On call 24/7 for drivers and managers alike",
+      "Zero downtime — repairs done between routes",
+    ],
+  },
+  {
     title: "Chip & Stone Break Repair",
     slug: "chip-repair",
     description:
@@ -36,23 +49,10 @@ export const SERVICES: ServiceItem[] = [
     ],
   },
   {
-    title: "Fleet & Commercial",
-    slug: "fleet-commercial",
-    description:
-      "Keep your fleet on the road with priority scheduling, volume pricing, and dedicated account management for businesses of all sizes.",
-    icon: Building2,
-    features: [
-      "Volume pricing from $50 down to $25 per repair",
-      "Priority scheduling",
-      "Dedicated account management",
-      "Minimal vehicle downtime",
-    ],
-  },
-  {
     title: "Mobile Service",
     slug: "mobile-service",
     description:
-      "We come to you — home, office, or wherever you are in the Little Rock area. Our fully equipped mobile units handle repairs on-site for maximum convenience.",
+      "We come to you — home, office, job site, or fleet yard, anywhere in the Little Rock area. Our fully equipped mobile units handle repairs on-site for maximum convenience.",
     icon: Car,
     features: [
       "We come to your location",

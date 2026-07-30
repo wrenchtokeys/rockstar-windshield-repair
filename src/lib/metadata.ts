@@ -39,6 +39,9 @@ export function createMetadata(
       "same day windshield repair",
       "insurance windshield repair",
       "fleet windshield service",
+      "fleet windshield repair",
+      "trucking company windshield repair",
+      "commercial truck windshield repair",
     ],
     openGraph: {
       title: fullTitle,

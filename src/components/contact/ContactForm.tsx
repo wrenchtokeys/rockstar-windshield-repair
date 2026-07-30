@@ -9,7 +9,7 @@ import type { FormState } from "@/types";
 const SERVICE_OPTIONS = [
   "Chip Repair",
   "Crack Repair",
-  "Fleet & Commercial",
+  "Fleet & Trucking",
   "Assessment",
 ] as const;
 

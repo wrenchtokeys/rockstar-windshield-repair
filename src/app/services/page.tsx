@@ -10,7 +10,7 @@ import { CheckCircle, BadgeDollarSign, Truck } from "lucide-react";
 
 export const metadata: Metadata = createMetadata(
   "Services & Pricing",
-  "Windshield chip repair ($65–$85), crack repair ($125), fleet volume pricing, mobile service, and insurance claims in Little Rock, AR. Often $0 with insurance.",
+  "Fleet & trucking windshield repair specialists in Little Rock, AR — volume pricing from $50 down to $25 per repair, done at your yard. Chip repair ($65–$85) and crack repair ($125) for everyday drivers, often $0 with insurance.",
   "/services"
 );
 
@@ -21,10 +21,40 @@ export default function ServicesPage() {
       <div className="mx-auto max-w-7xl px-4">
         <SectionHeading
           as="h1"
-          subtitle="Expert windshield repair for the general public and commercial fleets."
+          subtitle="Fleet and trucking specialists — with the same expert repair for everyday drivers."
         >
           Our Services
         </SectionHeading>
+
+        {/* Fleet specialization banner */}
+        <div
+          id="fleet"
+          className="mb-12 scroll-mt-24 rounded-lg border border-blue-600/40 bg-gradient-to-r from-blue-600/15 to-blue-600/5 p-8 md:flex md:items-center md:justify-between md:gap-8"
+        >
+          <div>
+            <p className="font-heading text-sm uppercase tracking-[0.3em] text-blue-400">
+              Our Specialty
+            </p>
+            <h2 className="mt-2 font-heading text-2xl font-bold uppercase tracking-wider text-white">
+              Fleets &amp; Trucking Companies
+            </h2>
+            <p className="mt-3 max-w-2xl text-zinc-300">
+              The vast majority of our work is commercial fleets — making sure
+              trucks are done right is what we do. We come to your yard, repair
+              multiple units in one visit, and run routine lot checks at no
+              charge — if there&apos;s nothing to fix, the visit costs you
+              nothing. And we&apos;re on call 24/7 for drivers and managers
+              alike: when a truck is on a time crunch, we&apos;ll meet it
+              wherever it is and get it rolling. Fleet customers always come
+              first on our schedule.
+            </p>
+          </div>
+          <div className="mt-6 flex-shrink-0 md:mt-0">
+            <Button href="/contact?service=Fleet+%26+Trucking">
+              Get a Fleet Quote
+            </Button>
+          </div>
+        </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {SERVICES.map((service) => (
@@ -58,6 +88,55 @@ export default function ServicesPage() {
           </SectionHeading>
 
           <div className="grid gap-6 lg:grid-cols-2">
+            {/* Fleet */}
+            <div className="rounded-lg border border-blue-600/40 bg-zinc-900 p-8">
+              <div className="flex items-center gap-3">
+                <Truck className="h-8 w-8 text-blue-600" />
+                <h3 className="font-heading text-xl font-bold uppercase tracking-wider text-white">
+                  Fleet &amp; Trucking
+                </h3>
+              </div>
+              <p className="mt-6 text-zinc-300">
+                Qualifying fleets get volume pricing that beats retail from the
+                very first repair — starting at{" "}
+                <span className="font-heading text-2xl font-bold text-white">
+                  ${PRICING.fleetLadder[0]}
+                </span>{" "}
+                and dropping to as low as{" "}
+                <span className="font-heading text-2xl font-bold text-white">
+                  ${PRICING.fleetLadder[PRICING.fleetLadder.length - 1]}
+                </span>{" "}
+                per repair.
+              </p>
+              <ul className="mt-6 space-y-3">
+                {[
+                  "Volume discounts that grow with each repair per unit",
+                  `Up to ${PRICING.fleetMaxRepairsPerUnit} repairs per windshield before we recommend replacement`,
+                  "We come to your yard — zero vehicle downtime",
+                  "Free routine lot checks — you only pay for repairs we make",
+                  "On call 24/7 for drivers and managers alike",
+                  "Fleet accounts come first — priority scheduling, one point of contact",
+                ].map((feature) => (
+                  <li
+                    key={feature}
+                    className="flex items-start gap-2 text-sm text-zinc-300"
+                  >
+                    <CheckCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-600" />
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-4 text-sm text-zinc-400">
+                Exact pricing depends on fleet size and location — tell us about
+                your fleet and we&apos;ll put real numbers on it.
+              </p>
+              <div className="mt-6">
+                <Button href="/contact?service=Fleet+%26+Trucking">
+                  Get a Personalized Fleet Quote
+                </Button>
+              </div>
+            </div>
+
             {/* Everyday drivers */}
             <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-8">
               <div className="flex items-center gap-3">
@@ -96,53 +175,6 @@ export default function ServicesPage() {
                   — insurance covers repair with no deductible, and we handle
                   the paperwork.
                 </p>
-              </div>
-            </div>
-
-            {/* Fleet */}
-            <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-8">
-              <div className="flex items-center gap-3">
-                <Truck className="h-8 w-8 text-blue-600" />
-                <h3 className="font-heading text-xl font-bold uppercase tracking-wider text-white">
-                  Fleet &amp; Commercial
-                </h3>
-              </div>
-              <p className="mt-6 text-zinc-300">
-                Qualifying fleets get volume pricing that beats retail from the
-                very first repair — starting at{" "}
-                <span className="font-heading text-2xl font-bold text-white">
-                  ${PRICING.fleetLadder[0]}
-                </span>{" "}
-                and dropping to as low as{" "}
-                <span className="font-heading text-2xl font-bold text-white">
-                  ${PRICING.fleetLadder[PRICING.fleetLadder.length - 1]}
-                </span>{" "}
-                per repair.
-              </p>
-              <ul className="mt-6 space-y-3">
-                {[
-                  "Volume discounts that grow with each repair per unit",
-                  `Up to ${PRICING.fleetMaxRepairsPerUnit} repairs per windshield before we recommend replacement`,
-                  "We come to your yard — zero vehicle downtime",
-                  "Priority scheduling and one point of contact",
-                ].map((feature) => (
-                  <li
-                    key={feature}
-                    className="flex items-start gap-2 text-sm text-zinc-300"
-                  >
-                    <CheckCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-600" />
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-              <p className="mt-4 text-sm text-zinc-400">
-                Exact pricing depends on fleet size and location — tell us about
-                your fleet and we&apos;ll put real numbers on it.
-              </p>
-              <div className="mt-6">
-                <Button href="/contact?service=Fleet+%26+Commercial">
-                  Get a Personalized Fleet Quote
-                </Button>
               </div>
             </div>
           </div>

@@ -74,9 +74,9 @@ export default async function JsonLd() {
           "@type": "Offer",
           itemOffered: {
             "@type": "Service",
-            name: "Fleet & Commercial Service",
+            name: "Fleet & Trucking Windshield Repair",
             description:
-              "Volume pricing for qualifying fleets — from $50 down to $25 per repair — with priority scheduling for fleet vehicles and commercial accounts.",
+              "Our specialty: windshield repair for trucking companies and commercial fleets. Volume pricing from $50 down to $25 per repair, on-site yard service, and priority scheduling.",
           },
         },
         {
@@ -168,6 +168,14 @@ export default async function JsonLd() {
         acceptedAnswer: {
           "@type": "Answer",
           text: "Yes! We're a fully mobile service. We come to your home, office, or wherever you are in the Little Rock, AR metro area and Central Arkansas.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Do you work on fleet vehicles and commercial trucks?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "It's our specialty — most of our work is trucking companies and commercial fleets. Volume pricing runs from $50 down to $25 per repair, routine lot checks are free (you only pay for repairs we make), and we're on call 24/7 for drivers and managers alike. Fleet accounts always get priority scheduling.",
         },
       },
       {

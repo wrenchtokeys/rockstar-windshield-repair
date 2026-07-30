@@ -40,6 +40,8 @@ export const metadata: Metadata = {
     "crack repair Little Rock Arkansas",
     "auto glass repair Central Arkansas",
     "fleet windshield service",
+    "trucking company windshield repair",
+    "commercial truck windshield repair",
     "insurance windshield repair",
     "Rockstar Windshield Repair",
   ],

@@ -9,7 +9,7 @@ export default function ServicesPreview() {
   return (
     <section className="bg-zinc-900 py-20">
       <div className="mx-auto max-w-7xl px-4">
-        <SectionHeading subtitle="Expert windshield repair for everyday drivers and commercial fleets alike.">
+        <SectionHeading subtitle="Trucking-fleet specialists — with the same expert repair for everyday drivers.">
           Our Services
         </SectionHeading>
 

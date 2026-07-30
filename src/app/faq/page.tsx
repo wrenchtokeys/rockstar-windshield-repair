@@ -53,6 +53,11 @@ const faqs = [
       "With modern resin technology, most repairs are nearly invisible once cured. You might see a faint mark if you look closely, but it won't obstruct your view. The goal is to restore structural integrity and stop the damage from spreading. Cosmetically, most customers are surprised how clean the repair looks.",
   },
   {
+    question: "Do you work on classic and collector cars?",
+    answer:
+      "We do — and repair is often the smartest option for them. Replacement glass for older and collector vehicles can be expensive, hard to source, or impossible to match, so saving the original windshield is exactly what we specialize in. We work carefully around trim and original seals, we're fully insured, and if we don't believe a repair will do your glass justice, we'll tell you before we ever touch it.",
+  },
+  {
     question: "Can I drive right after the repair?",
     answer:
       "Yes — you can drive immediately after the repair is complete. The resin cures during the repair process, so your windshield is ready to go when we're done. We do recommend avoiding car washes for 24 hours and keeping the repair area dry if possible.",
@@ -60,12 +65,12 @@ const faqs = [
   {
     question: "Do you work on fleet vehicles and commercial trucks?",
     answer:
-      "Absolutely. We work with several fleet companies in Central Arkansas. Qualifying fleets get volume pricing that starts at $50 per repair and drops as low as $25, with priority scheduling and multiple vehicles serviced in one visit at your yard or facility. Fleet managers love us because there's zero vehicle downtime — we come to you and repairs take under 30 minutes per vehicle. Reach out for a personalized fleet quote.",
+      "It's our specialty — most of our work is trucking companies and commercial fleets across Central Arkansas. Qualifying fleets get volume pricing that starts at $50 per repair and drops as low as $25, with priority scheduling and multiple vehicles serviced in one visit at your yard or facility. Fleet managers love us because there's zero vehicle downtime — we come to you and repairs take under 30 minutes per vehicle. We can even set up routine lot checks at no charge: if we walk your yard and find nothing to fix, the visit is free — you only ever pay for repairs we actually make. And we're on call 24/7 for drivers and managers alike — if a truck catches a chip on a tight schedule, we'll meet it wherever it is and get it back on the road. Fleet accounts always come first on our schedule. Reach out for a personalized fleet quote.",
   },
   {
     question: "What if my chip spreads into a crack before I can get it repaired?",
     answer:
-      "Call us as soon as possible. Temperature changes, rough roads, and even closing your car door can cause a chip to spread. The sooner we repair it, the better the result. A $60 chip repair today can save you a $300+ windshield replacement next week. Don't wait.",
+      "Call us as soon as possible. Temperature changes, rough roads, and even closing your car door can cause a chip to spread. The sooner we repair it, the better the result. A $65 chip repair today can save you a $400+ windshield replacement next week. Don't wait.",
   },
   {
     question: "Is Rockstar Windshield Repair insured?",

@@ -6,7 +6,7 @@ const points = [
     icon: Wrench,
     title: "Repair Is All We Do",
     description:
-      "No replacement upsells, no glass inventory to move. Our only job is saving the windshield you already have.",
+      "No replacement upsells, no glass inventory to move. Our only job is saving the windshield you already have — including original glass on classic cars that can't simply be reordered.",
   },
   {
     icon: ShieldCheck,

@@ -19,8 +19,9 @@ export default function Footer() {
             />
             <p className="mt-4 text-sm text-zinc-400">
               Professional mobile windshield repair in{" "}
-              {BUSINESS.address.city}, {BUSINESS.address.state} and surrounding
-              areas. Fully insured.
+              {BUSINESS.address.city}, {BUSINESS.address.state} and across
+              Central Arkansas — trusted by trucking fleets and everyday
+              drivers alike. Fully insured.
             </p>
           </div>
 

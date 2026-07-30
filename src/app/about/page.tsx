@@ -60,9 +60,9 @@ const whyChooseUs = [
   },
   {
     icon: Users,
-    title: "Public & Fleet",
+    title: "Fleet & Public",
     description:
-      "We serve everyday drivers and commercial fleets alike with the same professional, reliable service.",
+      "Trucking fleets are the heart of our business — and everyday drivers and classic cars get that same fleet-grade care, one windshield at a time.",
   },
 ];
 
@@ -90,9 +90,11 @@ export default function AboutPage() {
             We specialize in windshield repair — chips, cracks, star breaks,
             and bullseye damage — using professional resin-injection techniques
             that restore the strength and clarity of your original factory
-            glass. Whether you&apos;re an everyday driver or managing a
-            commercial fleet, we deliver the same expert-level service. Our
-            mobile units come to you, whether you&apos;re at home, at work, or
+            glass. Most of our work is keeping commercial trucking fleets on
+            the road — which means we&apos;re built for speed, reliability, and
+            getting the job done right the first time. Everyday drivers get
+            that same fleet-grade service on a single windshield. Our mobile
+            units come to you, whether you&apos;re at home, at work, or
             anywhere else across Central Arkansas.
           </p>
           <p>
