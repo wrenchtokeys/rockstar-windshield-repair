@@ -326,6 +326,48 @@ export default function QueuePage() {
     fetchSubmissions();
   };
 
+  // Download every lead as a CSV — the contact list (names, phones,
+  // emails) belongs to the business, not just this dashboard. Fetches
+  // unfiltered so an active status filter doesn't silently trim the file.
+  const exportCsv = async () => {
+    try {
+      const res = await fetch("/api/queue", { headers: authHeader() });
+      if (!res.ok) {
+        setActionError(`Couldn't export (server error ${res.status}).`);
+        return;
+      }
+      const data = await res.json();
+      const subs: Submission[] = data.submissions || [];
+      const esc = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+      const rows = [
+        [
+          "Name", "Phone", "Email", "Vehicle", "Service", "Status",
+          "Quote", "Scheduled", "Submitted", "Source",
+          "Review Requested", "Left Review", "Notes",
+        ],
+        ...subs.map((s) => [
+          s.name, s.phone, s.email, s.vehicleInfo, s.serviceType, s.status,
+          s.quotePrice || "", s.scheduledFor || "", s.submittedAt,
+          s.source || "web",
+          s.reviewRequestedAt || s.reviewSmsSentAt || s.reviewEmailSentAt || "",
+          s.reviewLeftAt || "", s.notes || "",
+        ]),
+      ];
+      const csv = rows.map((r) => r.map(esc).join(",")).join("\n");
+      // BOM so Excel opens it as UTF-8 instead of mangling names.
+      const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `rockstar-leads-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      setActionError("");
+    } catch {
+      setActionError("Couldn't export — no response from the server.");
+    }
+  };
+
   const deleteSubmission = async (id: string) => {
     if (!confirm("Delete this submission?")) return;
     try {
@@ -441,6 +483,13 @@ export default function QueuePage() {
               className="rounded-lg border border-zinc-700 px-3 py-1.5 text-sm text-zinc-400 hover:text-white"
             >
               {loading ? "..." : "Refresh"}
+            </button>
+            <button
+              onClick={exportCsv}
+              title="Download every lead (names, phones, emails) as a CSV"
+              className="rounded-lg border border-zinc-700 px-3 py-1.5 text-sm text-zinc-400 hover:text-white"
+            >
+              Export CSV
             </button>
             <button
               onClick={logout}
