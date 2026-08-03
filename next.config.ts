@@ -14,6 +14,7 @@ const SERVER_ENV_KEYS = [
   "GOOGLE_PLACES_API_KEY",
   "GOOGLE_PLACE_ID",
   "SMS_ORIGINATION_IDENTITY",
+  "TURNSTILE_SECRET_KEY",
 ];
 
 const env: Record<string, string> = {};

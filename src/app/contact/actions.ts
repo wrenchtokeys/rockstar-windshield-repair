@@ -68,13 +68,50 @@ async function saveToS3(submission: Record<string, string>) {
   }
 }
 
+// Verify the Turnstile captcha token with Cloudflare. Only enforced when
+// TURNSTILE_SECRET_KEY is configured, so the form keeps working before
+// the keys exist in the Amplify environment.
+async function verifyTurnstile(formData: FormData): Promise<boolean> {
+  const secret = process.env.TURNSTILE_SECRET_KEY;
+  if (!secret) return true;
+
+  const token = formData.get("cf-turnstile-response");
+  if (typeof token !== "string" || !token) return false;
+
+  try {
+    const res = await fetch(
+      "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({ secret, response: token }),
+      }
+    );
+    const data = (await res.json()) as { success?: boolean };
+    return data.success === true;
+  } catch (error) {
+    // Fail closed — a bot storm is exactly when siteverify hiccups.
+    console.error("Turnstile verification failed:", error);
+    return false;
+  }
+}
+
 export async function submitContactForm(
   _prevState: FormState,
   formData: FormData
 ): Promise<FormState> {
-  // Honeypot check
+  // Bot gate #1 — honeypot. Bots fill every field; humans never see it.
+  // Fake success so the bot doesn't learn it was caught.
   const honeypot = formData.get("website") as string;
   if (honeypot) {
+    return { success: true, message: "Thank you! We'll be in touch soon." };
+  }
+
+  // Bot gate #2 — time to submit. The form stamps when it rendered;
+  // anything "filled out" in under 3 seconds is a script, not a person
+  // with a cracked windshield. Missing stamp (JS disabled) passes.
+  const startedAt = Number(formData.get("formStartedAt"));
+  if (startedAt > 0 && Date.now() - startedAt < 3000) {
     return { success: true, message: "Thank you! We'll be in touch soon." };
   }
 
@@ -86,8 +123,32 @@ export async function submitContactForm(
   const damageDescription = (formData.get("damageDescription") as string)?.trim();
   const preferredContact = (formData.get("preferredContact") as string)?.trim();
 
-  if (!name || !phone) {
-    return { success: false, message: "Please provide your name and phone number." };
+  if (!name || !phone || !email) {
+    return {
+      success: false,
+      message: "Please provide your name, phone number, and email.",
+    };
+  }
+  if (phone.replace(/\D/g, "").length < 10) {
+    return {
+      success: false,
+      message: "Please provide a valid 10-digit phone number.",
+    };
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return {
+      success: false,
+      message: "Please provide a valid email address.",
+    };
+  }
+
+  // Bot gate #3 — the captcha, once keys are configured.
+  if (!(await verifyTurnstile(formData))) {
+    return {
+      success: false,
+      message:
+        "We couldn't verify you're human — please complete the check and try again.",
+    };
   }
 
   const submission = {

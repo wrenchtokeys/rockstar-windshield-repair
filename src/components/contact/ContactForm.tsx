@@ -1,10 +1,15 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { submitContactForm } from "@/app/contact/actions";
 import Button from "@/components/ui/Button";
+import TurnstileWidget from "@/components/contact/TurnstileWidget";
 import { BUSINESS } from "@/lib/constants";
 import type { FormState } from "@/types";
+
+// Inlined at build time; the captcha renders only once the key exists in
+// the Amplify environment.
+const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "";
 
 const SERVICE_OPTIONS = [
   "Chip Repair",
@@ -25,6 +30,14 @@ export default function ContactForm({
 }) {
   const [state, formAction, pending] = useActionState(submitContactForm, initialState);
   const preselected = SERVICE_OPTIONS.find((s) => s === defaultService) ?? "";
+
+  // Bot gate #2 (after the honeypot): stamp when the form actually
+  // appeared on screen. Humans read and type for a while; bots submit in
+  // under a second. Set client-side after mount so SSR/hydration agree.
+  const [startedAt, setStartedAt] = useState("");
+  useEffect(() => {
+    setStartedAt(String(Date.now()));
+  }, []);
 
   // GA4 conversion: a submitted quote request is the site's other key event
   // besides call/text taps (tracked globally in Analytics.tsx).
@@ -57,6 +70,7 @@ export default function ContactForm({
         className="absolute -left-[9999px] opacity-0"
         aria-hidden="true"
       />
+      <input type="hidden" name="formStartedAt" value={startedAt} />
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
@@ -89,12 +103,13 @@ export default function ContactForm({
 
       <div>
         <label htmlFor="email" className="mb-1 block text-sm font-medium text-zinc-300">
-          Email
+          Email *
         </label>
         <input
           type="email"
           id="email"
           name="email"
+          required
           className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
           placeholder="you@example.com"
         />
@@ -180,6 +195,8 @@ export default function ContactForm({
         </a>
         .
       </p>
+
+      {TURNSTILE_SITE_KEY && <TurnstileWidget siteKey={TURNSTILE_SITE_KEY} />}
 
       <Button type="submit" variant="primary" disabled={pending}>
         {pending ? "Sending..." : "Send Message"}
