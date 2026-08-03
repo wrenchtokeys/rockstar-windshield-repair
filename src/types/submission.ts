@@ -32,6 +32,11 @@ export interface Submission {
   reviewEmailFollowupAt?: string;
   reviewSmsSentAt?: string;
   reviewSmsFollowupAt?: string;
+  // Set when the owner confirms the customer actually left a Google review.
+  // Once set, every further ask (manual reminder button and the automated
+  // 3-day follow-ups) is suppressed — nobody gets nudged about a review
+  // they already wrote.
+  reviewLeftAt?: string;
   // How the lead arrived. Absent on records created before this field
   // existed — treat missing as "web".
   source?: "web" | "manual";

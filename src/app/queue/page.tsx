@@ -101,6 +101,15 @@ export default function QueuePage() {
   const [showAddLead, setShowAddLead] = useState(false);
   const [newLead, setNewLead] = useState(EMPTY_LEAD);
   const [addError, setAddError] = useState("");
+  // Set when the server rejects an add because the phone/email matches an
+  // existing lead — holds that lead so the owner can decide "same person,
+  // new job" (Add Anyway) or drop it.
+  const [duplicateOf, setDuplicateOf] = useState<{
+    name: string;
+    phone: string;
+    status: SubmissionStatus;
+    submittedAt: string;
+  } | null>(null);
   const [adding, setAdding] = useState(false);
   const [actionError, setActionError] = useState("");
   const [checkingSavedPw, setCheckingSavedPw] = useState(true);
@@ -216,6 +225,17 @@ export default function QueuePage() {
     }
   };
 
+  // The owner saw the review on Google — record it so the reminder button
+  // and the automated follow-ups all stop. `left: false` undoes a mis-tap.
+  const setReviewLeft = async (id: string, left: boolean) => {
+    await patchLead(
+      id,
+      left ? { markReviewLeft: true } : { unmarkReviewLeft: true },
+      "update the review status"
+    );
+    fetchSubmissions();
+  };
+
   const markReviewAsked = async (id: string, followup: boolean) => {
     await patchLead(
       id,
@@ -250,17 +270,25 @@ export default function QueuePage() {
     fetchSubmissions();
   };
 
-  const createLead = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const createLead = async (
+    e: React.FormEvent | null,
+    allowDuplicate = false
+  ) => {
+    e?.preventDefault();
     setAddError("");
+    setDuplicateOf(null);
     setAdding(true);
     try {
       const res = await fetch("/api/queue", {
         method: "POST",
         headers: { ...authHeader(), "Content-Type": "application/json" },
-        body: JSON.stringify(newLead),
+        body: JSON.stringify({ ...newLead, allowDuplicate }),
       });
       const data = await res.json();
+      if (res.status === 409 && data.existing) {
+        setDuplicateOf(data.existing);
+        return;
+      }
       if (!res.ok) {
         setAddError(data.error || "Failed to add lead");
         return;
@@ -356,6 +384,30 @@ export default function QueuePage() {
 
   const newCount = submissions.filter((s) => s.status === "new").length;
 
+  // A customer is their phone/email, not one row — leads sharing either
+  // get a "repeat customer" marker, and a review left on an earlier job
+  // shows up on the new one too. (Only sees the currently loaded list, so
+  // it's most complete on the All filter; the server-side duplicate check
+  // on add is the real enforcement.)
+  const contactKeys = (s: Submission): string[] => {
+    const keys: string[] = [];
+    const digits = (s.phone || "").replace(/\D/g, "").slice(-10);
+    if (digits) keys.push(digits);
+    const email = (s.email || "").trim().toLowerCase();
+    if (email) keys.push(email);
+    return keys;
+  };
+  const byContact = new Map<string, Submission[]>();
+  for (const s of submissions) {
+    for (const k of contactKeys(s)) {
+      byContact.set(k, [...(byContact.get(k) || []), s]);
+    }
+  }
+  const otherLeadsFor = (s: Submission): Submission[] =>
+    contactKeys(s)
+      .flatMap((k) => byContact.get(k) || [])
+      .filter((o) => o.id !== s.id);
+
   return (
     <div className="min-h-screen bg-zinc-950 pb-24 md:pb-8">
       {/* Header */}
@@ -376,6 +428,7 @@ export default function QueuePage() {
             <button
               onClick={() => {
                 setAddError("");
+                setDuplicateOf(null);
                 setShowAddLead((v) => !v);
               }}
               className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-bold text-white hover:bg-blue-500"
@@ -527,6 +580,36 @@ export default function QueuePage() {
                 <span className="text-xs text-red-400">{addError}</span>
               )}
             </div>
+
+            {/* The phone/email matched somebody already in the queue. A
+                repeat customer with a new chip is legit — but make it a
+                deliberate choice, not an accident. */}
+            {duplicateOf && (
+              <div className="mt-3 flex flex-wrap items-center gap-3 rounded-lg border border-yellow-700 bg-yellow-950/40 px-3 py-2.5">
+                <p className="text-sm text-yellow-300">
+                  Already in the queue:{" "}
+                  <span className="font-bold">{duplicateOf.name}</span>
+                  {duplicateOf.phone && ` (${duplicateOf.phone})`} —{" "}
+                  {STATUS_CONFIG[duplicateOf.status]?.label || duplicateOf.status},
+                  {" "}added {timeAgo(duplicateOf.submittedAt)}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => createLead(null, true)}
+                  disabled={adding}
+                  className="rounded-md bg-yellow-600 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-white hover:bg-yellow-500 disabled:opacity-50"
+                >
+                  Add Anyway (repeat customer)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDuplicateOf(null)}
+                  className="text-xs text-zinc-400 hover:text-white"
+                >
+                  Never mind
+                </button>
+              </div>
+            )}
           </form>
         </div>
       )}
@@ -560,7 +643,11 @@ export default function QueuePage() {
         )}
 
         <div className="space-y-3">
-          {submissions.map((sub) => (
+          {submissions.map((sub) => {
+            const otherLeads = otherLeadsFor(sub);
+            const reviewedOnEarlierJob =
+              !sub.reviewLeftAt && otherLeads.some((o) => o.reviewLeftAt);
+            return (
             <div
               key={sub.id}
               className={`rounded-lg border bg-zinc-900 p-4 ${STATUS_CONFIG[sub.status]?.bg || "border-zinc-800"}`}
@@ -575,6 +662,12 @@ export default function QueuePage() {
                     {timeAgo(sub.submittedAt)}
                     {sub.serviceType && ` · ${sub.serviceType}`}
                     {sub.source === "manual" && " · added manually"}
+                    {otherLeads.length > 0 && (
+                      <span className="text-blue-400"> · ↻ repeat customer</span>
+                    )}
+                    {reviewedOnEarlierJob && (
+                      <span className="text-green-500"> · ★ reviewed a past job</span>
+                    )}
                   </p>
                 </div>
 
@@ -649,10 +742,26 @@ export default function QueuePage() {
                   </a>
                 )}
 
+                {/* The customer left their review — show it proudly and
+                    stop every ask. The × undoes a mis-tap. */}
+                {sub.status === "won" && sub.reviewLeftAt && (
+                  <span className="flex items-center gap-1.5 rounded-full border border-green-700 bg-green-900/40 px-2.5 py-1 text-xs font-bold text-green-300">
+                    ★ Left a review {timeAgo(sub.reviewLeftAt)}
+                    <button
+                      onClick={() => setReviewLeft(sub.id, false)}
+                      title="Undo — marked by mistake"
+                      className="text-green-500/60 hover:text-white"
+                    >
+                      ×
+                    </button>
+                  </span>
+                )}
+
                 {/* Review-request flow for completed jobs: an explicit
                     send button — verify the customer hasn't already
-                    reviewed, then tap. Hides once any request went out. */}
-                {sub.status === "won" && sub.phone && REVIEW_URL && !sub.reviewSmsSentAt && (
+                    reviewed, then tap. Hides once any request went out
+                    or once the review actually landed. */}
+                {sub.status === "won" && !sub.reviewLeftAt && sub.phone && REVIEW_URL && !sub.reviewSmsSentAt && (
                   !sub.reviewRequestedAt && !sub.reviewEmailSentAt ? (
                     <button
                       onClick={() => sendReviewRequest(sub)}
@@ -677,18 +786,31 @@ export default function QueuePage() {
                   )
                 )}
 
-                {/* Automated channels — sent server-side, no taps */}
-                {sub.status === "won" && sub.reviewSmsSentAt && (
+                {/* Automated channels — sent server-side, no taps. Hidden
+                    once the review lands; the green badge says it all. */}
+                {sub.status === "won" && !sub.reviewLeftAt && sub.reviewSmsSentAt && (
                   <span className="text-xs text-zinc-500">
                     💬 auto-texted {timeAgo(sub.reviewSmsSentAt)}
                     {sub.reviewSmsFollowupAt && " · followed up"}
                   </span>
                 )}
-                {sub.status === "won" && sub.reviewEmailSentAt && (
+                {sub.status === "won" && !sub.reviewLeftAt && sub.reviewEmailSentAt && (
                   <span className="text-xs text-zinc-500">
                     ✉ auto-emailed {timeAgo(sub.reviewEmailSentAt)}
                     {sub.reviewEmailFollowupAt && " · followed up"}
                   </span>
+                )}
+
+                {/* One tap when the review shows up on Google — kills the
+                    reminder button and the automated follow-ups for good. */}
+                {sub.status === "won" && !sub.reviewLeftAt && (
+                  <button
+                    onClick={() => setReviewLeft(sub.id, true)}
+                    title="They left a Google review — stop all reminders"
+                    className="rounded-md border border-zinc-700 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-zinc-400 hover:border-green-600 hover:text-green-400"
+                  >
+                    ✓ Left Review
+                  </button>
                 )}
 
                 <div className="flex-1" />
@@ -771,7 +893,8 @@ export default function QueuePage() {
                 </p>
               )}
             </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>

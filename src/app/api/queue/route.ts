@@ -98,6 +98,43 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // A customer is identified by phone or email — catch the same person
+    // being added twice (form submission + manual add, or two manual adds).
+    // The dashboard sends allowDuplicate after the owner confirms it's a
+    // genuine repeat job. Compare on the last 10 digits so "(919) 555-0100"
+    // and "+19195550100" match; the table is one-man-shop sized, so a scan
+    // is fine.
+    if (body.allowDuplicate !== true) {
+      const email = cleanString(body.email, 200).toLowerCase();
+      const phoneKey = phone.replace(/\D/g, "").slice(-10);
+      const existing = await docClient.send(
+        new ScanCommand({ TableName: TABLE_NAME })
+      );
+      const match = (existing.Items || []).find((item) => {
+        const itemPhone = String(item.phone || "").replace(/\D/g, "").slice(-10);
+        const itemEmail = String(item.email || "").trim().toLowerCase();
+        return (
+          (phoneKey && itemPhone === phoneKey) ||
+          (email && itemEmail === email)
+        );
+      });
+      if (match) {
+        return NextResponse.json(
+          {
+            error: "This customer is already in the queue",
+            existing: {
+              id: match.id,
+              name: match.name,
+              phone: match.phone,
+              status: match.status,
+              submittedAt: match.submittedAt,
+            },
+          },
+          { status: 409 }
+        );
+      }
+    }
+
     const status: SubmissionStatus = VALID_STATUSES.includes(body.status)
       ? body.status
       : "new";

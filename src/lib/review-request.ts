@@ -92,6 +92,8 @@ async function trySendReviewSms(
   sub: Submission,
   followup: boolean
 ): Promise<boolean> {
+  // Never message someone who already left their review.
+  if (sub.reviewLeftAt) return false;
   if (!REVIEW_URL || !smsEnabled() || !sub.phone) return false;
 
   const field: ClaimField = followup ? "reviewSmsFollowupAt" : "reviewSmsSentAt";
@@ -161,6 +163,8 @@ async function trySendReviewEmail(
   sub: Submission,
   followup: boolean
 ): Promise<boolean> {
+  // Never message someone who already left their review.
+  if (sub.reviewLeftAt) return false;
   if (!REVIEW_URL || !sub.email) return false;
 
   const field: ClaimField = followup
@@ -210,6 +214,9 @@ export async function processDueReviewFollowups(subs: Submission[]) {
 
   for (const sub of subs) {
     if (sub.status !== "won") continue;
+    // Already reviewed — the follow-up would be asking for something they
+    // already did.
+    if (sub.reviewLeftAt) continue;
     if (overdue(sub.reviewSmsSentAt, sub.reviewSmsFollowupAt)) {
       await trySendReviewSms(sub, true);
     }

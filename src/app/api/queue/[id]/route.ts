@@ -29,6 +29,7 @@ export async function PATCH(
   try {
     const body = await request.json();
     const updates: string[] = [];
+    const removes: string[] = [];
     const names: Record<string, string> = {};
     const values: Record<string, unknown> = {};
 
@@ -71,11 +72,21 @@ export async function PATCH(
       values[":reviewFollowupAt"] = new Date().toISOString();
     }
 
-    if (updates.length === 0 && body.requestReview !== true) {
+    // The owner spotted the customer's review on Google — record it so
+    // every further ask (manual and automated) stops. unmark handles a
+    // mis-tap.
+    if (body.markReviewLeft === true) {
+      updates.push("reviewLeftAt = :reviewLeftAt");
+      values[":reviewLeftAt"] = new Date().toISOString();
+    } else if (body.unmarkReviewLeft === true) {
+      removes.push("reviewLeftAt");
+    }
+
+    if (updates.length === 0 && removes.length === 0 && body.requestReview !== true) {
       return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
     }
 
-    if (updates.length > 0) {
+    if (updates.length > 0 || removes.length > 0) {
       updates.push("updatedAt = :updatedAt");
       values[":updatedAt"] = new Date().toISOString();
 
@@ -83,7 +94,9 @@ export async function PATCH(
         new UpdateCommand({
           TableName: TABLE_NAME,
           Key: { id },
-          UpdateExpression: `SET ${updates.join(", ")}`,
+          UpdateExpression:
+            `SET ${updates.join(", ")}` +
+            (removes.length > 0 ? ` REMOVE ${removes.join(", ")}` : ""),
           ExpressionAttributeNames: Object.keys(names).length > 0 ? names : undefined,
           ExpressionAttributeValues: values,
         })
