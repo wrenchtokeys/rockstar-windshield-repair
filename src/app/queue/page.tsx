@@ -41,6 +41,12 @@ function reviewSmsHref(sub: Submission, followup: boolean): string {
   return `sms:${phoneDigits(sub.phone)}?&body=${encodeURIComponent(body)}`;
 }
 
+// The dashboard gets opened mid-phone-call standing in a parking lot — a
+// 20-character password is not something to retype on a phone keyboard.
+// Remember it on this device after one successful login; a 401 (password
+// rotated) clears it and falls back to the login form.
+const PW_STORAGE_KEY = "rswr-queue-pw";
+
 const EMPTY_LEAD = {
   name: "",
   phone: "",
@@ -80,6 +86,7 @@ export default function QueuePage() {
   const [addError, setAddError] = useState("");
   const [adding, setAdding] = useState(false);
   const [actionError, setActionError] = useState("");
+  const [checkingSavedPw, setCheckingSavedPw] = useState(true);
 
   const authHeader = useCallback(
     () => ({ "x-queue-auth": password }),
@@ -93,6 +100,7 @@ export default function QueuePage() {
         filter === "all" ? "/api/queue" : `/api/queue?status=${filter}`;
       const res = await fetch(url, { headers: authHeader() });
       if (res.status === 401) {
+        localStorage.removeItem(PW_STORAGE_KEY);
         setAuthed(false);
         return;
       }
@@ -112,6 +120,27 @@ export default function QueuePage() {
     }
   }, [filter, authHeader]);
 
+  // Try the password remembered from a previous visit before showing the
+  // login form at all.
+  useEffect(() => {
+    const saved = localStorage.getItem(PW_STORAGE_KEY);
+    if (!saved) {
+      setCheckingSavedPw(false);
+      return;
+    }
+    fetch("/api/queue", { headers: { "x-queue-auth": saved } })
+      .then((res) => {
+        if (res.ok) {
+          setPassword(saved);
+          setAuthed(true);
+        } else {
+          localStorage.removeItem(PW_STORAGE_KEY);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setCheckingSavedPw(false));
+  }, []);
+
   useEffect(() => {
     if (authed) fetchSubmissions();
   }, [authed, filter, fetchSubmissions]);
@@ -129,10 +158,17 @@ export default function QueuePage() {
       headers: { "x-queue-auth": password },
     });
     if (res.ok) {
+      localStorage.setItem(PW_STORAGE_KEY, password);
       setAuthed(true);
     } else {
       alert("Wrong password");
     }
+  };
+
+  const logout = () => {
+    localStorage.removeItem(PW_STORAGE_KEY);
+    setPassword("");
+    setAuthed(false);
   };
 
   // Every write goes through here so a failure is visible instead of the
@@ -274,6 +310,12 @@ export default function QueuePage() {
     fetchSubmissions();
   };
 
+  // Blank (not the login form) while the remembered password is being
+  // checked — flashing the form for 200ms just invites a pointless retype.
+  if (checkingSavedPw) {
+    return <div className="min-h-screen bg-zinc-950" />;
+  }
+
   // Login screen
   if (!authed) {
     return (
@@ -338,6 +380,13 @@ export default function QueuePage() {
               className="rounded-lg border border-zinc-700 px-3 py-1.5 text-sm text-zinc-400 hover:text-white"
             >
               {loading ? "..." : "Refresh"}
+            </button>
+            <button
+              onClick={logout}
+              className="px-1 text-xs text-zinc-600 hover:text-zinc-400"
+              title="Forget the saved password on this device"
+            >
+              Log out
             </button>
           </div>
         </div>

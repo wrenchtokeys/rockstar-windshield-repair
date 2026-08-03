@@ -13,6 +13,7 @@ const SERVER_ENV_KEYS = [
   "QUEUE_PASSWORD",
   "GOOGLE_PLACES_API_KEY",
   "GOOGLE_PLACE_ID",
+  "SMS_ORIGINATION_IDENTITY",
 ];
 
 const env: Record<string, string> = {};

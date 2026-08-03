@@ -19,6 +19,23 @@ export default function Analytics() {
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
           gtag('config', '${gaId}');
+
+          // Conversion tracking: every call/text tap anywhere on the site.
+          // A single delegated listener beats instrumenting each component —
+          // new tel:/sms: links are tracked automatically. Mark call_click,
+          // text_click, and generate_lead as Key Events in GA4 admin.
+          document.addEventListener('click', function (e) {
+            var a = e.target && e.target.closest && e.target.closest('a[href]');
+            if (!a) return;
+            var href = a.getAttribute('href') || '';
+            if (href.indexOf('tel:') === 0) {
+              gtag('event', 'call_click', { link_text: (a.textContent || '').trim().slice(0, 50) });
+            } else if (href.indexOf('sms:') === 0) {
+              gtag('event', 'text_click', { link_text: (a.textContent || '').trim().slice(0, 50) });
+            } else if (href.indexOf('/review') !== -1 && href.indexOf('g.page') !== -1) {
+              gtag('event', 'review_link_click', {});
+            }
+          }, true);
         `}
       </Script>
     </>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import { submitContactForm } from "@/app/contact/actions";
 import Button from "@/components/ui/Button";
 import { BUSINESS } from "@/lib/constants";
@@ -25,6 +25,14 @@ export default function ContactForm({
 }) {
   const [state, formAction, pending] = useActionState(submitContactForm, initialState);
   const preselected = SERVICE_OPTIONS.find((s) => s === defaultService) ?? "";
+
+  // GA4 conversion: a submitted quote request is the site's other key event
+  // besides call/text taps (tracked globally in Analytics.tsx).
+  useEffect(() => {
+    if (!state.success) return;
+    const w = window as { gtag?: (...args: unknown[]) => void };
+    w.gtag?.("event", "generate_lead", {});
+  }, [state.success]);
 
   return (
     <form action={formAction} className="space-y-4">
