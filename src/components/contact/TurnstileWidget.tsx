@@ -19,7 +19,7 @@ declare global {
 }
 
 const SCRIPT_SRC =
-  "https://challenges.cloudflare.com/turnstile/api.js?onload=onTurnstileLoad&render=explicit";
+  "https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoad&render=explicit";
 
 export default function TurnstileWidget({ siteKey }: { siteKey: string }) {
   const ref = useRef<HTMLDivElement>(null);
