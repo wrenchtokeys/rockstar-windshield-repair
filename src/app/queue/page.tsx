@@ -225,31 +225,24 @@ export default function QueuePage() {
     fetchSubmissions();
   };
 
+  // Marking Won never sends anything by itself — the card grows a
+  // "Send Review Request" button and the owner decides. (The customer may
+  // have already left a review, or shouldn't be messaged at all.)
   const updateStatus = async (sub: Submission, status: SubmissionStatus) => {
-    // Ask before any review request goes out — the owner may be marking an
-    // old job Won for bookkeeping, or the customer already left a review.
-    const reviewPossible =
-      status === "won" &&
-      !sub.reviewRequestedAt &&
-      !sub.reviewSmsSentAt &&
-      !sub.reviewEmailSentAt &&
-      REVIEW_URL;
-    const sendReview = reviewPossible
-      ? confirm(`Ask ${sub.name} for a Google review now (text${sub.email ? " + email" : ""})?`)
-      : false;
+    await patchLead(sub.id, { status }, "change the status");
+    fetchSubmissions();
+  };
 
+  // The explicit send: automated SMS + email via the server. Falls back to
+  // the prefilled Messages composer when the server can't text (toll-free
+  // number not in production yet).
+  const sendReviewRequest = async (sub: Submission) => {
     const result = await patchLead(
       sub.id,
-      status === "won" ? { status, skipReviewRequest: !sendReview } : { status },
-      "change the status"
+      { requestReview: true },
+      "send the review request"
     );
-    if (!result) {
-      fetchSubmissions();
-      return;
-    }
-    // Server couldn't text automatically (toll-free not live yet) → open
-    // Messages prefilled so the ask still happens with one tap.
-    if (sendReview && !result.autoTexted && sub.phone) {
+    if (result && !result.autoTexted && sub.phone && REVIEW_URL) {
       await markReviewAsked(sub.id, false);
       window.location.href = reviewSmsHref(sub, false);
       return;
@@ -260,22 +253,12 @@ export default function QueuePage() {
   const createLead = async (e: React.FormEvent) => {
     e.preventDefault();
     setAddError("");
-
-    // Same confirmation as flipping a status to Won — no message goes out
-    // without an explicit yes.
-    const sendReview =
-      newLead.status === "won" && REVIEW_URL
-        ? confirm(
-            `Ask ${newLead.name.trim() || "this customer"} for a Google review right away (text${newLead.email.trim() ? " + email" : ""})?`
-          )
-        : false;
-
     setAdding(true);
     try {
       const res = await fetch("/api/queue", {
         method: "POST",
         headers: { ...authHeader(), "Content-Type": "application/json" },
-        body: JSON.stringify({ ...newLead, skipReviewRequest: !sendReview }),
+        body: JSON.stringify(newLead),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -286,16 +269,6 @@ export default function QueuePage() {
       const created: Submission = data.submission;
       setNewLead(EMPTY_LEAD);
       setShowAddLead(false);
-
-      // Adding a job straight in as Won is the parking-lot case: the repair
-      // is done and the customer is standing right there. Open the review
-      // text immediately — unless the server already texted them, or the
-      // owner declined the confirmation.
-      if (sendReview && !data.autoTexted && created.phone) {
-        await markReviewAsked(created.id, false);
-        window.location.href = reviewSmsHref(created, false);
-        return;
-      }
 
       // Don't let an active filter hide the lead that was just added.
       if (filter !== "all" && filter !== created.status) {
@@ -547,7 +520,7 @@ export default function QueuePage() {
 
               {newLead.status === "won" && REVIEW_URL && (
                 <span className="text-xs text-green-500">
-                  ★ You&apos;ll be asked before any review request is sent
+                  ★ Nothing sends yet — use the card&apos;s Send Review Request button
                 </span>
               )}
               {addError && (
@@ -676,18 +649,18 @@ export default function QueuePage() {
                   </a>
                 )}
 
-                {/* Review-request flow for completed jobs. The manual
-                    Messages flow hides once the automated SMS went out. */}
+                {/* Review-request flow for completed jobs: an explicit
+                    send button — verify the customer hasn't already
+                    reviewed, then tap. Hides once any request went out. */}
                 {sub.status === "won" && sub.phone && REVIEW_URL && !sub.reviewSmsSentAt && (
-                  !sub.reviewRequestedAt ? (
-                    <a
-                      href={reviewSmsHref(sub, false)}
-                      onClick={() => markReviewAsked(sub.id, false)}
+                  !sub.reviewRequestedAt && !sub.reviewEmailSentAt ? (
+                    <button
+                      onClick={() => sendReviewRequest(sub)}
                       className="rounded-md bg-green-600 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-white hover:bg-green-500"
                     >
-                      ★ Ask for Review
-                    </a>
-                  ) : !sub.reviewFollowupAt && olderThan24h(sub.reviewRequestedAt) ? (
+                      ★ Send Review Request
+                    </button>
+                  ) : sub.reviewRequestedAt && !sub.reviewFollowupAt && olderThan24h(sub.reviewRequestedAt) ? (
                     <a
                       href={reviewSmsHref(sub, true)}
                       onClick={() => markReviewAsked(sub.id, true)}
@@ -697,7 +670,8 @@ export default function QueuePage() {
                     </a>
                   ) : (
                     <span className="text-xs text-zinc-500">
-                      ★ review asked {timeAgo(sub.reviewRequestedAt)}
+                      ★ review asked
+                      {sub.reviewRequestedAt && ` ${timeAgo(sub.reviewRequestedAt)}`}
                       {sub.reviewFollowupAt && " · reminded"}
                     </span>
                   )

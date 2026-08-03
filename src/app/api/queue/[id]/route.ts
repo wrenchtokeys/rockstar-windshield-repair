@@ -71,42 +71,46 @@ export async function PATCH(
       values[":reviewFollowupAt"] = new Date().toISOString();
     }
 
-    if (updates.length === 0) {
+    if (updates.length === 0 && body.requestReview !== true) {
       return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
     }
 
-    updates.push("updatedAt = :updatedAt");
-    values[":updatedAt"] = new Date().toISOString();
+    if (updates.length > 0) {
+      updates.push("updatedAt = :updatedAt");
+      values[":updatedAt"] = new Date().toISOString();
 
-    await docClient.send(
-      new UpdateCommand({
-        TableName: TABLE_NAME,
-        Key: { id },
-        UpdateExpression: `SET ${updates.join(", ")}`,
-        ExpressionAttributeNames: Object.keys(names).length > 0 ? names : undefined,
-        ExpressionAttributeValues: values,
-      })
-    );
+      await docClient.send(
+        new UpdateCommand({
+          TableName: TABLE_NAME,
+          Key: { id },
+          UpdateExpression: `SET ${updates.join(", ")}`,
+          ExpressionAttributeNames: Object.keys(names).length > 0 ? names : undefined,
+          ExpressionAttributeValues: values,
+        })
+      );
+    }
 
-    // Job just marked Won → fire the automated review request (SMS if a
-    // toll-free number is configured, email if the lead has one).
-    // Awaited (not fire-and-forget) because serverless kills background
-    // work after the response; idempotent via the conditional-write claims.
-    // autoTexted tells the dashboard to skip the manual Messages composer.
-    // skipReviewRequest: the dashboard asked the owner first and they said
-    // no — the job is Won but the customer shouldn't be messaged.
+    // The review request only fires on an explicit requestReview from the
+    // dashboard's "Send Review Request" button — never as a side effect of
+    // a status change. The owner verifies the customer hasn't already
+    // reviewed before tapping it. Awaited (not fire-and-forget) because
+    // serverless kills background work after the response; idempotent via
+    // the conditional-write claims. autoTexted tells the dashboard whether
+    // to fall back to the manual Messages composer.
     let autoTexted = false;
-    if (body.status === "won" && body.skipReviewRequest !== true) {
+    let autoEmailed = false;
+    if (body.requestReview === true) {
       const { Item } = await docClient.send(
         new GetCommand({ TableName: TABLE_NAME, Key: { id } })
       );
-      if (Item) {
-        const { texted } = await autoRequestReview(Item as Submission);
+      if (Item && (Item as Submission).status === "won") {
+        const { texted, emailed } = await autoRequestReview(Item as Submission);
         autoTexted = texted;
+        autoEmailed = emailed;
       }
     }
 
-    return NextResponse.json({ success: true, autoTexted });
+    return NextResponse.json({ success: true, autoTexted, autoEmailed });
   } catch (error) {
     console.error("Failed to update submission:", error);
     return NextResponse.json(

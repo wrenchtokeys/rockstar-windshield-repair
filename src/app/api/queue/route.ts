@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ScanCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
 import { docClient, TABLE_NAME } from "@/lib/dynamodb";
-import { autoRequestReview, processDueReviewFollowups } from "@/lib/review-request";
+import { processDueReviewFollowups } from "@/lib/review-request";
 import type { Submission, SubmissionStatus } from "@/types/submission";
 
 function checkAuth(request: NextRequest) {
@@ -124,16 +124,9 @@ export async function POST(request: NextRequest) {
 
     await docClient.send(new PutCommand({ TableName: TABLE_NAME, Item: item }));
 
-    // The parking-lot case: lead added straight in as Won. Same automated
-    // review request as flipping a status to Won; autoTexted tells the
-    // dashboard to skip the manual Messages composer.
-    let autoTexted = false;
-    if (item.status === "won" && body.skipReviewRequest !== true) {
-      const { texted } = await autoRequestReview(item);
-      autoTexted = texted;
-    }
-
-    return NextResponse.json({ submission: item, autoTexted }, { status: 201 });
+    // No automatic review request on create — even for Won leads, the ask
+    // goes out only when the owner taps "Send Review Request" on the card.
+    return NextResponse.json({ submission: item }, { status: 201 });
   } catch (error) {
     console.error("Failed to create submission:", error);
     return NextResponse.json({ error: "Failed to create lead" }, { status: 500 });
