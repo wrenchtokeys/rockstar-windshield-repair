@@ -53,8 +53,23 @@ const EMPTY_LEAD = {
   email: "",
   vehicleInfo: "",
   notes: "",
+  quotePrice: "",
+  scheduledFor: "",
   status: "new" as SubmissionStatus,
 };
+
+// "2026-08-05T14:00" (datetime-local) → "Tue Aug 5, 2:00 PM"
+function formatScheduled(value: string): string {
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return value;
+  return d.toLocaleString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
 
 function olderThan24h(dateStr: string): boolean {
   return Date.now() - new Date(dateStr).getTime() > 24 * 60 * 60 * 1000;
@@ -79,8 +94,10 @@ export default function QueuePage() {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [filter, setFilter] = useState<SubmissionStatus | "all">("all");
   const [loading, setLoading] = useState(false);
-  const [editingNotes, setEditingNotes] = useState<string | null>(null);
+  const [editingDetails, setEditingDetails] = useState<string | null>(null);
   const [notesDraft, setNotesDraft] = useState("");
+  const [quoteDraft, setQuoteDraft] = useState("");
+  const [scheduledDraft, setScheduledDraft] = useState("");
   const [showAddLead, setShowAddLead] = useState(false);
   const [newLead, setNewLead] = useState(EMPTY_LEAD);
   const [addError, setAddError] = useState("");
@@ -209,22 +226,30 @@ export default function QueuePage() {
   };
 
   const updateStatus = async (sub: Submission, status: SubmissionStatus) => {
-    const result = await patchLead(sub.id, { status }, "change the status");
+    // Ask before any review request goes out — the owner may be marking an
+    // old job Won for bookkeeping, or the customer already left a review.
+    const reviewPossible =
+      status === "won" &&
+      !sub.reviewRequestedAt &&
+      !sub.reviewSmsSentAt &&
+      !sub.reviewEmailSentAt &&
+      REVIEW_URL;
+    const sendReview = reviewPossible
+      ? confirm(`Ask ${sub.name} for a Google review now (text${sub.email ? " + email" : ""})?`)
+      : false;
+
+    const result = await patchLead(
+      sub.id,
+      status === "won" ? { status, skipReviewRequest: !sendReview } : { status },
+      "change the status"
+    );
     if (!result) {
       fetchSubmissions();
       return;
     }
-    // Marking a job Won opens Messages prefilled with the review request —
-    // one tap to send while the customer is still happy. Skipped when the
-    // server already texted them automatically (verified toll-free number).
-    if (
-      status === "won" &&
-      !result.autoTexted &&
-      !sub.reviewRequestedAt &&
-      !sub.reviewSmsSentAt &&
-      sub.phone &&
-      REVIEW_URL
-    ) {
+    // Server couldn't text automatically (toll-free not live yet) → open
+    // Messages prefilled so the ask still happens with one tap.
+    if (sendReview && !result.autoTexted && sub.phone) {
       await markReviewAsked(sub.id, false);
       window.location.href = reviewSmsHref(sub, false);
       return;
@@ -235,12 +260,22 @@ export default function QueuePage() {
   const createLead = async (e: React.FormEvent) => {
     e.preventDefault();
     setAddError("");
+
+    // Same confirmation as flipping a status to Won — no message goes out
+    // without an explicit yes.
+    const sendReview =
+      newLead.status === "won" && REVIEW_URL
+        ? confirm(
+            `Ask ${newLead.name.trim() || "this customer"} for a Google review right away (text${newLead.email.trim() ? " + email" : ""})?`
+          )
+        : false;
+
     setAdding(true);
     try {
       const res = await fetch("/api/queue", {
         method: "POST",
         headers: { ...authHeader(), "Content-Type": "application/json" },
-        body: JSON.stringify(newLead),
+        body: JSON.stringify({ ...newLead, skipReviewRequest: !sendReview }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -254,14 +289,9 @@ export default function QueuePage() {
 
       // Adding a job straight in as Won is the parking-lot case: the repair
       // is done and the customer is standing right there. Open the review
-      // text immediately, same as flipping the status dropdown to Won —
-      // unless the server already texted them automatically.
-      if (
-        created.status === "won" &&
-        !data.autoTexted &&
-        created.phone &&
-        REVIEW_URL
-      ) {
+      // text immediately — unless the server already texted them, or the
+      // owner declined the confirmation.
+      if (sendReview && !data.autoTexted && created.phone) {
         await markReviewAsked(created.id, false);
         window.location.href = reviewSmsHref(created, false);
         return;
@@ -280,13 +310,18 @@ export default function QueuePage() {
     }
   };
 
-  const saveNotes = async (id: string) => {
+  const saveDetails = async (id: string) => {
     const ok = await patchLead(
       id,
-      { notes: notesDraft, skipContactedAt: true },
-      "save the note"
+      {
+        notes: notesDraft,
+        quotePrice: quoteDraft,
+        scheduledFor: scheduledDraft,
+        skipContactedAt: true,
+      },
+      "save the details"
     );
-    if (ok) setEditingNotes(null);
+    if (ok) setEditingDetails(null);
     fetchSubmissions();
   };
 
@@ -459,6 +494,26 @@ export default function QueuePage() {
                 placeholder="Notes (optional)"
                 className="rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white placeholder-zinc-500 focus:border-blue-600 focus:outline-none"
               />
+              <input
+                value={newLead.quotePrice}
+                onChange={(e) =>
+                  setNewLead({ ...newLead, quotePrice: e.target.value })
+                }
+                placeholder="Quote price (e.g. $80)"
+                inputMode="decimal"
+                className="rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white placeholder-zinc-500 focus:border-blue-600 focus:outline-none"
+              />
+              <label className="flex items-center gap-2 rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-500 focus-within:border-blue-600">
+                Scheduled
+                <input
+                  type="datetime-local"
+                  value={newLead.scheduledFor}
+                  onChange={(e) =>
+                    setNewLead({ ...newLead, scheduledFor: e.target.value })
+                  }
+                  className="flex-1 bg-transparent text-white focus:outline-none [color-scheme:dark]"
+                />
+              </label>
             </div>
 
             <div className="mt-3 flex flex-wrap items-center gap-3">
@@ -492,8 +547,7 @@ export default function QueuePage() {
 
               {newLead.status === "won" && REVIEW_URL && (
                 <span className="text-xs text-green-500">
-                  ★ Opens the review text right after saving
-                  {newLead.email.trim() && " · review email sends automatically"}
+                  ★ You&apos;ll be asked before any review request is sent
                 </span>
               )}
               {addError && (
@@ -583,6 +637,22 @@ export default function QueuePage() {
                 )}
               </div>
 
+              {/* Deal chips — the two facts needed mid-phone-call */}
+              {(sub.quotePrice || sub.scheduledFor) && (
+                <div className="mt-2 flex flex-wrap gap-2 text-xs font-bold">
+                  {sub.quotePrice && (
+                    <span className="rounded-full border border-emerald-700 bg-emerald-900/40 px-2.5 py-1 text-emerald-300">
+                      💲 {sub.quotePrice}
+                    </span>
+                  )}
+                  {sub.scheduledFor && (
+                    <span className="rounded-full border border-cyan-700 bg-cyan-900/40 px-2.5 py-1 text-cyan-300">
+                      📅 {formatScheduled(sub.scheduledFor)}
+                    </span>
+                  )}
+                </div>
+              )}
+
               {/* Action buttons */}
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 <a
@@ -649,19 +719,23 @@ export default function QueuePage() {
 
                 <div className="flex-1" />
 
-                {/* Notes toggle */}
+                {/* Details editor toggle: quote, schedule, note */}
                 <button
                   onClick={() => {
-                    if (editingNotes === sub.id) {
-                      setEditingNotes(null);
+                    if (editingDetails === sub.id) {
+                      setEditingDetails(null);
                     } else {
-                      setEditingNotes(sub.id);
+                      setEditingDetails(sub.id);
                       setNotesDraft(sub.notes || "");
+                      setQuoteDraft(sub.quotePrice || "");
+                      setScheduledDraft(sub.scheduledFor || "");
                     }
                   }}
                   className="text-xs text-zinc-500 hover:text-zinc-300"
                 >
-                  {sub.notes ? "Edit note" : "+ Note"}
+                  {sub.notes || sub.quotePrice || sub.scheduledFor
+                    ? "Edit details"
+                    : "+ Quote / Schedule / Note"}
                 </button>
 
                 <button
@@ -672,31 +746,52 @@ export default function QueuePage() {
                 </button>
               </div>
 
-              {/* Notes editor */}
-              {editingNotes === sub.id && (
-                <div className="mt-3 flex gap-2">
-                  <input
-                    type="text"
-                    value={notesDraft}
-                    onChange={(e) => setNotesDraft(e.target.value)}
-                    placeholder="Add a note..."
-                    className="flex-1 rounded-md border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-sm text-white placeholder-zinc-500 focus:border-blue-600 focus:outline-none"
-                    autoFocus
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") saveNotes(sub.id);
-                    }}
-                  />
-                  <button
-                    onClick={() => saveNotes(sub.id)}
-                    className="rounded-md bg-blue-600 px-3 py-1.5 text-xs font-bold text-white"
-                  >
-                    Save
-                  </button>
+              {/* Details editor */}
+              {editingDetails === sub.id && (
+                <div className="mt-3 space-y-2">
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    <input
+                      type="text"
+                      value={quoteDraft}
+                      onChange={(e) => setQuoteDraft(e.target.value)}
+                      placeholder="Quote price (e.g. $80)"
+                      inputMode="decimal"
+                      autoFocus
+                      className="rounded-md border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-sm text-white placeholder-zinc-500 focus:border-blue-600 focus:outline-none"
+                    />
+                    <label className="flex items-center gap-2 rounded-md border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-sm text-zinc-500 focus-within:border-blue-600">
+                      Scheduled
+                      <input
+                        type="datetime-local"
+                        value={scheduledDraft}
+                        onChange={(e) => setScheduledDraft(e.target.value)}
+                        className="flex-1 bg-transparent text-white focus:outline-none [color-scheme:dark]"
+                      />
+                    </label>
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={notesDraft}
+                      onChange={(e) => setNotesDraft(e.target.value)}
+                      placeholder="Add a note..."
+                      className="flex-1 rounded-md border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-sm text-white placeholder-zinc-500 focus:border-blue-600 focus:outline-none"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") saveDetails(sub.id);
+                      }}
+                    />
+                    <button
+                      onClick={() => saveDetails(sub.id)}
+                      className="rounded-md bg-blue-600 px-3 py-1.5 text-xs font-bold text-white"
+                    >
+                      Save
+                    </button>
+                  </div>
                 </div>
               )}
 
               {/* Show existing notes */}
-              {sub.notes && editingNotes !== sub.id && (
+              {sub.notes && editingDetails !== sub.id && (
                 <p className="mt-2 text-xs italic text-zinc-500">
                   Note: {sub.notes}
                 </p>

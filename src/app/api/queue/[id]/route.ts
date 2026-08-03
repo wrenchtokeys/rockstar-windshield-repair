@@ -49,6 +49,18 @@ export async function PATCH(
       values[":notes"] = body.notes;
     }
 
+    if (body.quotePrice !== undefined) {
+      updates.push("quotePrice = :quotePrice");
+      values[":quotePrice"] =
+        typeof body.quotePrice === "string" ? body.quotePrice.trim().slice(0, 50) : "";
+    }
+
+    if (body.scheduledFor !== undefined) {
+      updates.push("scheduledFor = :scheduledFor");
+      values[":scheduledFor"] =
+        typeof body.scheduledFor === "string" ? body.scheduledFor.trim().slice(0, 50) : "";
+    }
+
     if (body.markReviewRequested === true) {
       updates.push("reviewRequestedAt = :reviewRequestedAt");
       values[":reviewRequestedAt"] = new Date().toISOString();
@@ -81,8 +93,10 @@ export async function PATCH(
     // Awaited (not fire-and-forget) because serverless kills background
     // work after the response; idempotent via the conditional-write claims.
     // autoTexted tells the dashboard to skip the manual Messages composer.
+    // skipReviewRequest: the dashboard asked the owner first and they said
+    // no — the job is Won but the customer shouldn't be messaged.
     let autoTexted = false;
-    if (body.status === "won") {
+    if (body.status === "won" && body.skipReviewRequest !== true) {
       const { Item } = await docClient.send(
         new GetCommand({ TableName: TABLE_NAME, Key: { id } })
       );

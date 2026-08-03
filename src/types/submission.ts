@@ -11,6 +11,11 @@ export interface Submission {
   preferredContact: string;
   status: SubmissionStatus;
   notes: string;
+  // Deal details the owner needs at a glance mid-phone-call: what was
+  // quoted and when the job is booked for. Free-form strings — "$80" and a
+  // datetime-local value respectively.
+  quotePrice?: string;
+  scheduledFor?: string;
   submittedAt: string;
   contactedAt?: string;
   updatedAt?: string;

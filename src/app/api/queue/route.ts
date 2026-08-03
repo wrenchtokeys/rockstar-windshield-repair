@@ -114,6 +114,8 @@ export async function POST(request: NextRequest) {
       preferredContact: "phone",
       status,
       notes: cleanString(body.notes, 1000),
+      quotePrice: cleanString(body.quotePrice, 50),
+      scheduledFor: cleanString(body.scheduledFor, 50),
       submittedAt: now,
       source: "manual",
       // Anything past "new" means the conversation already happened offline.
@@ -126,7 +128,7 @@ export async function POST(request: NextRequest) {
     // review request as flipping a status to Won; autoTexted tells the
     // dashboard to skip the manual Messages composer.
     let autoTexted = false;
-    if (item.status === "won") {
+    if (item.status === "won" && body.skipReviewRequest !== true) {
       const { texted } = await autoRequestReview(item);
       autoTexted = texted;
     }
