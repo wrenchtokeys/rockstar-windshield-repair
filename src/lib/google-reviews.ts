@@ -43,7 +43,10 @@ async function fetchPlaceDetails(): Promise<PlaceDetailsResponse | null> {
           "X-Goog-Api-Key": apiKey,
           "X-Goog-FieldMask": "rating,userRatingCount,reviews",
         },
-        next: { revalidate: 60 * 60 * 24 },
+        // 1h keeps new reviews appearing same-day (page ISR + CloudFront each
+        // stack their own copy of this TTL) while staying within the Places
+        // Enterprise SKU free tier (max ~720 calls/mo at full churn).
+        next: { revalidate: 60 * 60 },
       }
     );
     if (!res.ok) return null;
