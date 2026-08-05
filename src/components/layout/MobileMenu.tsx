@@ -55,7 +55,7 @@ export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
           </Link>
           <a
             href={BUSINESS.smsHref}
-            className="mt-3 flex items-center justify-center border-2 border-blue-600 py-3 text-sm font-bold uppercase tracking-widest text-blue-500 btn-angular"
+            className="mt-3 flex items-center justify-center border-2 border-blue-600 px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-blue-500 btn-angular"
           >
             Text a Photo of the Damage
           </a>
