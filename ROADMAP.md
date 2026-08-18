@@ -111,8 +111,13 @@ These require info only the business owner has:
       the ID from the Google Maps preview payload (details in
       docs/SESSION_NOTES.md). Both `GOOGLE_PLACES_API_KEY` and
       `GOOGLE_PLACE_ID` are set on `rswr-production`. Reviews, the rating
-      summary, and JSON-LD `aggregateRating` all update automatically
-      (24h ISR cache) — no deploys needed for new reviews.
+      summary, and JSON-LD `aggregateRating` all update automatically —
+      but **via a nightly rebuild, not ISR**. Amplify never expires a
+      prerendered page, so the `revalidate` on the Places fetch does
+      nothing; the site sat on a 13-day-old review count until this was
+      caught on 2026-08-18. The EventBridge schedule
+      `rswr-daily-review-refresh` now rebuilds at 4am Central. See
+      "Three Amplify gotchas" in docs/DEPLOYMENT.md before touching this.
       Note: the listing still isn't in the Places *search* index (Text
       Search/Autocomplete return nothing); doesn't matter for us since we
       fetch by Place ID directly. **Reminder:** any future env-var change

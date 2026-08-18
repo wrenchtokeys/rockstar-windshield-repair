@@ -52,7 +52,7 @@ swapping which role is attached, which does.
 
 ---
 
-## ⚠️ Two Amplify gotchas (read before you debug a "silently broken" form)
+## ⚠️ Three Amplify gotchas (read before you debug something "silently broken")
 
 These are not bugs in this app — they're Amplify + Next.js behaviors that every
 SSR app here must work around. Both fixes are in the repo.
@@ -85,6 +85,33 @@ land in the client bundle. NEXT_PUBLIC_* vars are handled by Next automatically.
 If you add a new server-side env var, add its key to `SERVER_ENV_KEYS` in
 `next.config.ts` **and** set the value in the Amplify console — both, or it
 won't reach the runtime.
+
+
+### 3. ISR never revalidates — a prerendered page is frozen until the next build
+`export const revalidate` / `fetch(..., { next: { revalidate } })` does not work
+here. Next emits the right `Cache-Control` (`s-maxage=3600, stale-while-revalidate=…`)
+and Amplify serves the page, but the compute **never reports the entry stale**:
+
+```
+$ curl -I https://main.d12me65ddm59c9.amplifyapp.com/reviews
+x-nextjs-cache: HIT          ← every request, forever. Never STALE.
+x-nextjs-prerender: 1
+```
+
+Each compute container is seeded fresh from the build artifact, so the
+prerender's apparent age resets before it can cross the revalidate window. On a
+low-traffic site containers recycle constantly, so the window is never reached
+and the background regeneration that would re-call the upstream API never runs.
+
+Found 2026-08-18: `/reviews` had been serving the Google review count from the
+Aug 5 build for 13 days (site said 4 reviews, Google said 6) despite an hourly
+`revalidate`. It refreshed only on a manual redeploy.
+
+**Fix in place:** a daily EventBridge Schedule rebuilds the site — see
+*Scheduled daily rebuild* below. **Do not** "fix" stale data by lowering
+`revalidate`; the number is not the problem, and nothing in the ISR path runs.
+If you ever need sub-daily freshness, the data has to come from somewhere other
+than a build-time prerender (a persistent `cacheHandler`, or client-side fetch).
 
 ---
 
@@ -131,6 +158,31 @@ role, region from the runtime). `CONTACT_FROM_EMAIL` defaults to
 - **Force a rebuild** (e.g. after changing a compute role or env var):
   `aws amplify start-job --app-id d12me65ddm59c9 --branch-name main --job-type RELEASE`.
   A compute-role change needs a redeploy to take effect.
+
+### Scheduled daily rebuild (this is what refreshes Google reviews)
+
+Because ISR is dead here (gotcha 3), the **build** is the refresh mechanism.
+An EventBridge Schedule re-runs it every night:
+
+| Thing | Value |
+|---|---|
+| Schedule | `rswr-daily-review-refresh` (EventBridge Scheduler, `us-east-1`, default group) |
+| When | `cron(0 4 * * ? *)` in `America/Chicago` — 4:00am local, ±30min flexible window |
+| Target | `arn:aws:scheduler:::aws-sdk:amplify:startJob` → app `d12me65ddm59c9`, branch `main`, `JobType=RELEASE` |
+| Role | `rswr-daily-build-scheduler` (inline policy `amplify-start-job`, scoped to this branch's jobs) |
+| Cost | ~30 builds/mo × ~2min ≈ 60 build-minutes against a 1,000-minute free tier |
+
+`RELEASE` builds whatever is at the head of `main`, so the nightly run also
+picks up any commit that failed to deploy. Inspect or change it with:
+
+```bash
+aws scheduler get-schedule --name rswr-daily-review-refresh
+aws amplify list-jobs --app-id d12me65ddm59c9 --branch-name main --max-results 5
+```
+
+A failed nightly build fails **silently** — the site just keeps serving the last
+good version with stale reviews. If reviews look frozen again, check
+`list-jobs` before assuming the Places API broke.
 
 ---
 

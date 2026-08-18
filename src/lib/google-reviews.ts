@@ -43,9 +43,15 @@ async function fetchPlaceDetails(): Promise<PlaceDetailsResponse | null> {
           "X-Goog-Api-Key": apiKey,
           "X-Goog-FieldMask": "rating,userRatingCount,reviews",
         },
-        // 1h keeps new reviews appearing same-day (page ISR + CloudFront each
-        // stack their own copy of this TTL) while staying within the Places
-        // Enterprise SKU free tier (max ~720 calls/mo at full churn).
+        // NOTE: this revalidate does NOT refresh the live site. Amplify never
+        // reports a prerendered page stale (x-nextjs-cache is HIT forever), so
+        // the background regeneration that would re-run this fetch never fires
+        // — /reviews served a 13-day-old count until 2026-08-18. What actually
+        // refreshes reviews is the nightly rebuild (EventBridge schedule
+        // `rswr-daily-review-refresh`); see "Three Amplify gotchas" in
+        // docs/DEPLOYMENT.md. Lowering this number will not help.
+        // It still bounds the build-time fetch cache Amplify restores between
+        // builds, and keeps us inside the Places Enterprise SKU free tier.
         next: { revalidate: 60 * 60 },
       }
     );
