@@ -95,13 +95,13 @@ export default async function JsonLd() {
         "@type": "OpeningHoursSpecification",
         dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
         opens: "07:00",
-        closes: "18:00",
+        closes: "20:30",
       },
       {
         "@type": "OpeningHoursSpecification",
-        dayOfWeek: "Saturday",
-        opens: "08:00",
-        closes: "16:00",
+        dayOfWeek: ["Saturday", "Sunday"],
+        opens: "00:00",
+        closes: "23:59",
       },
     ],
     priceRange: "$65-$125",
@@ -175,7 +175,7 @@ export default async function JsonLd() {
         name: "Do you work on fleet vehicles and commercial trucks?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "It's our specialty — most of our work is trucking companies and commercial fleets. Volume pricing runs from $50 down to $25 per repair, routine lot checks are free (you only pay for repairs we make), and we're on call 24/7 for drivers and managers alike. Fleet accounts always get priority scheduling.",
+          text: "It's our specialty — most of our work is trucking companies and commercial fleets. Volume pricing runs from $50 down to $25 per repair, routine lot checks are free (you only pay for repairs we make), and we take after-hours emergency calls, especially for established fleets. Fleet accounts always get priority scheduling.",
         },
       },
       {

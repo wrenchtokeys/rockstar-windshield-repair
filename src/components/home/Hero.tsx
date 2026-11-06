@@ -67,7 +67,7 @@ export default function Hero({ summary }: HeroProps) {
             href="/services#fleet"
             className="font-semibold text-zinc-300 transition-colors hover:text-blue-400"
           >
-            Volume pricing &amp; 24/7 driver support &rarr;
+            Volume pricing &amp; after-hours fleet support &rarr;
           </Link>
         </p>
       </div>

@@ -43,9 +43,10 @@ export default function ServicesPage() {
               trucks are done right is what we do. We come to your yard, repair
               multiple units in one visit, and run routine lot checks at no
               charge — if there&apos;s nothing to fix, the visit costs you
-              nothing. And we&apos;re on call 24/7 for drivers and managers
-              alike: when a truck is on a time crunch, we&apos;ll meet it
-              wherever it is and get it rolling. Fleet customers always come
+              nothing. And when a truck is on a time crunch, we take
+              after-hours emergency calls — especially for established
+              fleets — and we&apos;ll meet it wherever it is and get it
+              rolling. Fleet customers always come
               first on our schedule.
             </p>
           </div>
@@ -114,7 +115,7 @@ export default function ServicesPage() {
                   `Up to ${PRICING.fleetMaxRepairsPerUnit} repairs per windshield before we recommend replacement`,
                   "We come to your yard — zero vehicle downtime",
                   "Free routine lot checks — you only pay for repairs we make",
-                  "On call 24/7 for drivers and managers alike",
+                  "After-hours emergency calls for established fleets",
                   "Fleet accounts come first — priority scheduling, one point of contact",
                 ].map((feature) => (
                   <li

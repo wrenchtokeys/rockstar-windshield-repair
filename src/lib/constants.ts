@@ -24,9 +24,9 @@ export const BUSINESS = {
     stateFullName: "Arkansas",
   },
   hours: {
-    weekdays: "Mon–Fri: 7:00 AM – 6:00 PM",
-    saturday: "Sat: 8:00 AM – 4:00 PM",
-    sunday: "Sun: Closed",
+    weekdays: "Mon–Fri: 7:00 AM – 8:30 PM",
+    saturday: "Sat: Open 24 hours",
+    sunday: "Sun: Open 24 hours",
   },
   serviceArea: "Little Rock, AR and surrounding areas",
 } as const;
