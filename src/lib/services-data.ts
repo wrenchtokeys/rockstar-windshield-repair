@@ -18,7 +18,7 @@ export const SERVICES: ServiceItem[] = [
     features: [
       "Volume pricing from $50 down to $25 per repair",
       "Multiple units repaired in one yard visit",
-      "On call 24/7 for drivers and managers alike",
+      "After-hours emergency calls for established fleets",
       "Zero downtime — repairs done between routes",
     ],
   },
