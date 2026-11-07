@@ -16,9 +16,13 @@ export async function sendEmail(opts: {
   subject: string;
   text: string;
   html: string;
+  configurationSet?: string;
 }) {
   await sesClient.send(
     new SendEmailCommand({
+      ...(opts.configurationSet
+        ? { ConfigurationSetName: opts.configurationSet }
+        : {}),
       FromEmailAddress: `${opts.fromName} <${FROM_EMAIL}>`,
       Destination: { ToAddresses: [opts.to] },
       Content: {

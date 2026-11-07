@@ -5,6 +5,7 @@ import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import { docClient, TABLE_NAME } from "@/lib/dynamodb";
 import { BUSINESS } from "@/lib/constants";
 import { sendEmail, buildBrandedEmail } from "@/lib/email";
+import { sendSms } from "@/lib/sms";
 import type { FormState } from "@/types";
 import type { Submission } from "@/types/submission";
 
@@ -164,9 +165,39 @@ export async function submitContactForm(
   // Save to both DynamoDB (queue) and S3 (backup)
   await Promise.all([saveToDynamoDB(submission), saveToS3(submission)]);
 
-  // 1. Send notification to Drake (via SES)
+  // 1. Alert Drake by text AND email, independently — a missed lead is a
+  // missed job, so one channel failing silently must never mean no alert.
+  // (Oct 2026: a lead was lost because SES had suppressed Drake's own
+  // address after a bounce and dropped the email without an error.)
+  const leadText = [
+    `New RSWR lead: ${name}`,
+    phone,
+    serviceType || null,
+    vehicleInfo || null,
+    damageDescription
+      ? damageDescription.length > 100
+        ? damageDescription.slice(0, 100) + "..."
+        : damageDescription
+      : null,
+    `Prefers: ${preferredContact || "phone"}`,
+    "https://rockstarwindshield.repair/queue",
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  try {
+    if (!(await sendSms(BUSINESS.phone, leadText))) {
+      console.error("LEAD ALERT: owner text not sent (SMS disabled or bad BUSINESS.phone)");
+    }
+  } catch (error) {
+    console.error("LEAD ALERT: failed to text owner:", error);
+  }
+
   try {
     await sendEmail({
+      // Owner alerts skip SES's suppression list so one stray bounce can't
+      // silence every future lead notification.
+      configurationSet: process.env.OWNER_ALERT_CONFIG_SET,
       fromName: BUSINESS.name + " Website",
       to: BUSINESS.email,
       subject: `New Quote Request — ${name} (${serviceType || "General"})`,
@@ -190,7 +221,7 @@ export async function submitContactForm(
       }),
     });
   } catch (error) {
-    console.error("Failed to send notification email:", error);
+    console.error("LEAD ALERT: failed to email owner:", error);
   }
 
   // 2. Send confirmation to customer (if they provided email)
